@@ -1,6 +1,6 @@
 use macroquad::{draw_texture_ex, load_texture, Color, DrawTextureParams, Rect, Texture2D, Vec2};
 
-use crate::tile::{Tile, TileType};
+use crate::tile::{Brightness, Tile, TileType};
 /// Is used to split one `Texture2D` into different tiles.
 #[derive(Clone, Debug)]
 pub struct TileAtlas {
@@ -42,8 +42,13 @@ impl TileAtlas {
             rotation: std::f32::consts::PI,
         };
         let (x, y) = tile.position.into();
-        let color = Self::color_from_brightness(tile.brightness);
-        draw_texture_ex(self.texture, x as f32, y as f32, color, params);
+        draw_texture_ex(
+            self.texture,
+            x as f32,
+            y as f32,
+            Color::from(tile.brightness),
+            params,
+        );
     }
     fn get_atlas_position(tile_type: TileType) -> (f32, f32) {
         match tile_type {
@@ -57,8 +62,5 @@ impl TileAtlas {
             TileType::Cat => (3., 1.),
             _ => panic!("Unknown tile_type encountered!"),
         }
-    }
-    fn color_from_brightness(brightness: u8) -> Color {
-        Color([brightness, brightness, brightness, 255])
     }
 }

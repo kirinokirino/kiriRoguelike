@@ -45,7 +45,12 @@ async fn main() {
     // Create main camera.
     let mut main_camera = Camera::default();
 
-    let tile = Tile::new(TileType::Coin, (1, 1).into());
+    //let tile = Tile::new(TileType::Coin, (1, 1).into());
+    let tile = Tile {
+        tile_type: TileType::Coin,
+        position: (0, 0).into(),
+        brightness: 120.into(),
+    };
 
     // The infinite game loop.
     loop {
