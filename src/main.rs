@@ -25,12 +25,15 @@ use macroquad::{
     MouseButton, Vec2, BLACK, GRAY, WHITE,
 };
 
+mod tile_atlas;
+use tile_atlas::TileAtlas;
+
 mod camera;
 use camera::{mouse_position_relative_to, Camera};
 #[macroquad::main("kiriRoguelike")]
 async fn main() {
     // Load assets.
-    let texture = load_texture("assets/Tiles.png").await;
+    let tile_atlas = TileAtlas::default().await;
 
     // We need to save the state of the mouse button
     // to detect mouse clicks and not just "is pressed"
