@@ -21,9 +21,12 @@
 
 use macroquad::{
     clear_background, debug, draw_circle, draw_text, is_key_pressed, is_mouse_button_down,
-    load_texture, next_frame, set_camera, set_default_camera, warn, Camera2D, Color, KeyCode,
-    MouseButton, Vec2, BLACK, GRAY, WHITE,
+    next_frame, set_camera, set_default_camera, warn, Camera2D, Color, KeyCode, MouseButton, Vec2,
+    BLACK,
 };
+
+mod tile;
+use tile::{Tile, TileType};
 
 mod tile_atlas;
 use tile_atlas::TileAtlas;
@@ -41,6 +44,8 @@ async fn main() {
 
     // Create main camera.
     let mut main_camera = Camera::default();
+
+    let tile = Tile::new(TileType::Coin, (1, 1).into());
 
     // The infinite game loop.
     loop {
@@ -66,6 +71,7 @@ async fn main() {
             ..macroquad::Camera2D::default()
         });
 
+        tile_atlas.draw_tile(&tile);
         // Draw the mouse cursor.
         draw_circle(
             mouse_position.x(),
@@ -84,16 +90,30 @@ async fn main() {
 
 /// Render the fixed screen ui. (after `set_default_camera()`)
 fn draw_ui() {
-    let text_color: Color = Color([100, 100, 100, 150]);
-    draw_text(",aoe to move camera", 10.0, 0.0, 20.0, text_color);
-    draw_text("'. to zoom camera", 10.0, 30.0, 20.0, text_color);
+    let text_color: Color = Color([200, 200, 200, 255]);
+    let font_size = 30f32;
+    let padding_left = 10f32;
     draw_text(
-        "arrow keys to move the player",
-        10.0,
-        60.0,
-        20.0,
+        ",aoe to move camera",
+        padding_left,
+        font_size * 0.,
+        font_size,
         text_color,
     );
+    draw_text(
+        "'. to zoom camera",
+        padding_left,
+        font_size * 1.,
+        font_size,
+        text_color,
+    );
+    draw_text(
+        "arrow keys to move the player",
+        padding_left,
+        font_size * 2.,
+        font_size,
+        text_color,
+    )
 }
 
 /// Handle the input from the keyboard.
