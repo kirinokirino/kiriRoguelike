@@ -1,5 +1,6 @@
 use macroquad::{draw_texture_ex, load_texture, Color, DrawTextureParams, Rect, Texture2D, Vec2};
 
+use crate::layer::Layer;
 use crate::tile::{Tile, TileType};
 /// Is used to split one `Texture2D` into different tiles.
 #[derive(Clone, Debug)]
@@ -28,7 +29,7 @@ impl TileAtlas {
         }
     }
 
-    /// Draws the tile.
+    /// Draws the provided `&Tile`.
     pub fn draw_tile(&self, tile: &Tile) {
         let (atlas_x, atlas_y) = Self::get_atlas_position(tile.tile_type);
         let params = DrawTextureParams {
@@ -49,6 +50,36 @@ impl TileAtlas {
             Color::from(tile.brightness),
             params,
         );
+    }
+
+    /// Draws every tile from the provided `&Layer`.
+    pub fn draw_layer(&self, layer: &Layer) {
+        for (tile_type, position, brightness) in layer {
+            let (atlas_x, atlas_y) = Self::get_atlas_position(tile_type);
+            let params = DrawTextureParams {
+                dest_size: Some(Vec2::one()),
+                source: Some(Rect {
+                    x: (self.tile_width + 0.3) * atlas_x,
+                    y: (self.tile_height + 0.3) * atlas_y,
+                    w: self.tile_width - 1.0,
+                    h: self.tile_height - 1.0,
+                }),
+                rotation: std::f32::consts::PI,
+            };
+            let (relative_x, relative_y) = position.into();
+            let (x, y) = (
+                layer.origin.0 + i64::from(relative_x),
+                layer.origin.1 + i64::from(relative_y),
+            );
+            #[allow(clippy::cast_precision_loss)]
+            draw_texture_ex(
+                self.texture,
+                x as f32,
+                y as f32,
+                Color::from(brightness),
+                params,
+            );
+        }
     }
 
     /// Position of tiletype in atlas.

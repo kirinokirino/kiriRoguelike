@@ -1,6 +1,6 @@
 use macroquad::Color;
 
-/// Coordinates in the game world.
+/// Coordinates in the game world, relative to the nearest layer origin.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Position {
     x: i16,

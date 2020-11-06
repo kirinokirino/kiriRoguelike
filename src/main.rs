@@ -35,6 +35,9 @@ use tile::{Tile, TileType};
 mod tile_atlas;
 use tile_atlas::TileAtlas;
 
+mod layer;
+use layer::Layer;
+
 mod camera;
 use camera::{mouse_position_relative_to, Camera};
 #[macroquad::main("kiriRoguelike")]
@@ -49,12 +52,25 @@ async fn main() {
     // Create main camera.
     let mut main_camera = Camera::default();
 
-    //let tile = Tile::new(TileType::Coin, (1, 1).into());
+    // Sample Tile.
     let tile = Tile {
-        tile_type: TileType::Coin,
+        tile_type: TileType::Grass,
         position: (0, 0).into(),
         brightness: 120.into(),
     };
+
+    // The vector of neccesary size for the layer to fill.
+    let mut tiles = vec![vec![tile.clone(); 64]; 64];
+
+    // Place tiles in correct positions.
+    for x in 0..64 {
+        for y in 0..64 {
+            tiles[x][y].position = (x as i16, y as i16).into();
+        }
+    }
+
+    // Create the layer filled with those tiles at provided position.
+    let layer = Layer::new((-10, -20), &tiles);
 
     // The infinite game loop.
     loop {
@@ -80,7 +96,7 @@ async fn main() {
             ..macroquad::Camera2D::default()
         });
 
-        tile_atlas.draw_tile(&tile);
+        tile_atlas.draw_layer(&layer);
         // Draw the mouse cursor.
         draw_circle(
             mouse_position.x(),

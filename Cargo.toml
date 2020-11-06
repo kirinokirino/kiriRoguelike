@@ -17,4 +17,3 @@ macroquad = "0.2.9"
 symmetric-shadowcasting = "0.2.0"
 
 [profile.dev]
-opt-level = 1
