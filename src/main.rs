@@ -17,7 +17,11 @@
     clippy::wildcard_enum_match_arm,
     clippy::wrong_pub_self_convention
 )]
-#![allow(clippy::missing_docs_in_private_items)]
+#![allow(
+    clippy::missing_docs_in_private_items,
+    clippy::module_name_repetitions,
+    clippy::future_not_send
+)]
 
 use macroquad::{
     clear_background, debug, draw_circle, draw_text, is_key_pressed, is_mouse_button_down,
@@ -96,8 +100,8 @@ async fn main() {
 /// Render the fixed screen ui. (after `set_default_camera()`)
 fn draw_ui() {
     let text_color: Color = Color([200, 200, 200, 255]);
-    let font_size = 30f32;
-    let padding_left = 10f32;
+    let font_size = 30.;
+    let padding_left = 10.;
     draw_text(
         ",aoe to move camera",
         padding_left,
@@ -135,9 +139,9 @@ fn handle_mouse(left_mouse_pressed: bool, mouse_position: Vec2) -> bool {
     if is_mouse_button_down(MouseButton::Left) {
         if !left_mouse_pressed {
             debug!(
-                "Mouse click at relative x:{} , y:{}",
-                mouse_position.x() as i32,
-                mouse_position.y() as i32
+                "Mouse click at relative x:{:.0} , y:{:.0}",
+                mouse_position.x(),
+                mouse_position.y(),
             );
         }
         true

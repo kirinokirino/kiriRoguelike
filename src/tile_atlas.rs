@@ -1,6 +1,6 @@
 use macroquad::{draw_texture_ex, load_texture, Color, DrawTextureParams, Rect, Texture2D, Vec2};
 
-use crate::tile::{Brightness, Tile, TileType};
+use crate::tile::{Tile, TileType};
 /// Is used to split one `Texture2D` into different tiles.
 #[derive(Clone, Debug)]
 pub struct TileAtlas {
@@ -23,12 +23,12 @@ impl TileAtlas {
     pub async fn default() -> Self {
         Self {
             texture: load_texture("assets/Tiles.png").await,
-            tile_width: 32f32,
-            tile_height: 32f32,
+            tile_width: 32.,
+            tile_height: 32.,
         }
     }
 
-    /// Draw provided Tiles kind (e.g. `Tiles::Grass`) to the given position.
+    /// Draws the tile.
     pub fn draw_tile(&self, tile: &Tile) {
         let (atlas_x, atlas_y) = Self::get_atlas_position(tile.tile_type);
         let params = DrawTextureParams {
@@ -44,13 +44,15 @@ impl TileAtlas {
         let (x, y) = tile.position.into();
         draw_texture_ex(
             self.texture,
-            x as f32,
-            y as f32,
+            f32::from(x),
+            f32::from(y),
             Color::from(tile.brightness),
             params,
         );
     }
-    fn get_atlas_position(tile_type: TileType) -> (f32, f32) {
+
+    /// Position of tiletype in atlas.
+    const fn get_atlas_position(tile_type: TileType) -> (f32, f32) {
         match tile_type {
             TileType::Debug => (0., 0.),
             TileType::Wall => (1., 0.),
@@ -60,7 +62,6 @@ impl TileAtlas {
             TileType::Chest => (1., 1.),
             TileType::Coin => (2., 1.),
             TileType::Cat => (3., 1.),
-            _ => panic!("Unknown tile_type encountered!"),
         }
     }
 }

@@ -1,20 +1,21 @@
 use macroquad::Color;
 
+/// Coordinates in the game world.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Position {
-    x: i32,
-    y: i32,
+    x: i16,
+    y: i16,
 }
 
-impl Into<(i32, i32)> for Position {
-    fn into(self) -> (i32, i32) {
+impl Into<(i16, i16)> for Position {
+    fn into(self) -> (i16, i16) {
         (self.x, self.y)
     }
 }
 
-impl From<(i32, i32)> for Position {
-    fn from(tuple: (i32, i32)) -> Self {
-        Position {
+impl From<(i16, i16)> for Position {
+    fn from(tuple: (i16, i16)) -> Self {
+        Self {
             x: tuple.0,
             y: tuple.1,
         }
@@ -27,6 +28,7 @@ impl std::fmt::Display for Position {
     }
 }
 
+/// Available tiles.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum TileType {
     Debug,
@@ -39,6 +41,7 @@ pub enum TileType {
     Cat,
 }
 
+/// Tile is the visual component of game world entities.
 #[derive(Debug, Clone)]
 pub struct Tile {
     pub tile_type: TileType,
@@ -47,6 +50,7 @@ pub struct Tile {
 }
 
 impl Tile {
+    /// Creates a new Tile with maximum brightness.
     pub fn new(tile_type: TileType, position: Position) -> Self {
         Self {
             tile_type,
@@ -56,18 +60,19 @@ impl Tile {
     }
 }
 
+/// A newtype for the brightness level, max is 255.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Brightness(u8);
 
 impl Default for Brightness {
     fn default() -> Self {
-        Brightness(255)
+        Self(255)
     }
 }
 
 impl From<u8> for Brightness {
     fn from(val: u8) -> Self {
-        Brightness(val)
+        Self(val)
     }
 }
 
@@ -79,6 +84,6 @@ impl From<Brightness> for u8 {
 
 impl From<Brightness> for Color {
     fn from(val: Brightness) -> Self {
-        Color([val.into(), val.into(), val.into(), 255])
+        Self([val.into(), val.into(), val.into(), 255])
     }
 }
