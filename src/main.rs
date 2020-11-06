@@ -24,6 +24,9 @@ use macroquad::{
     load_texture, next_frame, set_camera, set_default_camera, warn, Camera2D, Color, KeyCode,
     MouseButton, Vec2, BLACK, GRAY, WHITE,
 };
+
+mod camera;
+use camera::{mouse_position_relative_to, Camera};
 #[macroquad::main("kiriRoguelike")]
 async fn main() {
     // Load assets.
@@ -33,14 +36,16 @@ async fn main() {
     // to detect mouse clicks and not just "is pressed"
     let mut left_mouse_pressed = false;
 
+    // Create main camera.
+    let mut main_camera = Camera::default();
+
     // The infinite game loop.
     loop {
         // ===========Input===========
         // Get the mouse position inside the game world.
-        //let mouse_position = relative_mouse_position(&main_camera);
-        let mouse_position = Vec2::zero();
+        let mouse_position = mouse_position_relative_to(&main_camera);
         left_mouse_pressed = handle_mouse(left_mouse_pressed, mouse_position);
-        handle_keyboard();
+        handle_keyboard(&mut main_camera);
 
         // ===========Update===========
         // Checks for input related to camera and changes it accordingly.
@@ -50,13 +55,13 @@ async fn main() {
         clear_background(BLACK);
 
         // --- Camera space, render game objects.
-        /*
+
+        let (target, zoom) = main_camera.get();
         set_camera(Camera2D {
             target,
             zoom,
             ..macroquad::Camera2D::default()
         });
-        */
 
         // Draw the mouse cursor.
         draw_circle(
@@ -89,7 +94,8 @@ fn draw_ui() {
 }
 
 /// Handle the input from the keyboard.
-fn handle_keyboard() {
+fn handle_keyboard(camera: &mut Camera) {
+    camera.scroll(0.03, 0.97);
     if is_key_pressed(KeyCode::Right) {}
     if is_key_pressed(KeyCode::Left) {}
     if is_key_pressed(KeyCode::Down) {}
