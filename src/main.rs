@@ -40,6 +40,9 @@ use tile_atlas::TileAtlas;
 mod layer;
 use layer::Layer;
 
+mod world;
+use world::{World, WorldPosition};
+
 mod camera;
 use camera::{mouse_position_relative_to, Camera};
 #[macroquad::main("kiriRoguelike")]
@@ -54,48 +57,10 @@ async fn main() {
     // Create main camera.
     let mut main_camera = Camera::default();
 
-    // Sample Tile.
-    let tile = Tile {
-        tile_type: TileType::Grass,
-        position: (0, 0).into(),
-        brightness: 120.into(),
-    };
+    let mut world = World::default();
+    let pos = WorldPosition::from((0, 0));
 
-    // We generate two layers with the nosie_offset function as an example
-
-    // The vector of neccesary size for the layer to fill.
-    let mut tiles = vec![vec![tile.clone(); 64]; 64];
-    let noise = NoiseBuilder::gradient_2d_offset(64., 64, 0., 64)
-        .with_seed(0_i32)
-        .with_freq(0.015)
-        .generate_scaled(0.0, 255.0);
-
-    // Place tiles in correct positions.
-    for x in 0..64 {
-        for y in 0..64 {
-            tiles[x][y].position = (x as i16, y as i16).into();
-            tiles[x][y].brightness = (*noise.get(y * 64 + x).unwrap() as u8).into();
-        }
-    }
-    // Create the layer filled with those tiles at provided position.
-    let layer0 = Layer::new((0, 0), &tiles);
-
-    // The vector of neccesary size for the layer to fill.
-    let mut tiles = vec![vec![tile.clone(); 64]; 64];
-    let noise = NoiseBuilder::gradient_2d_offset(128., 64, 0., 64)
-        .with_seed(0_i32)
-        .with_freq(0.015)
-        .generate_scaled(0.0, 255.0);
-
-    // Place tiles in correct positions.
-    for x in 0..64 {
-        for y in 0..64 {
-            tiles[x][y].position = (x as i16, y as i16).into();
-            tiles[x][y].brightness = (*noise.get(y * 64 + x).unwrap() as u8).into();
-        }
-    }
-    // Create the layer filled with those tiles at provided position.
-    let layer = Layer::new((64, 0), &tiles);
+    world.gen_layer(pos);
 
     // The infinite game loop.
     loop {
@@ -121,8 +86,9 @@ async fn main() {
             ..macroquad::Camera2D::default()
         });
 
-        tile_atlas.draw_layer(&layer);
-        tile_atlas.draw_layer(&layer0);
+        for layer in world.get_layers() {
+            tile_atlas.draw_layer(layer);
+        }
         // Draw the mouse cursor.
         draw_circle(
             mouse_position.x(),
