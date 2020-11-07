@@ -15,5 +15,6 @@ categories = ["games"]
 [dependencies]
 macroquad = "0.2.9"
 symmetric-shadowcasting = "0.2.0"
+simdnoise = "3.1.6"
 
 [profile.dev]

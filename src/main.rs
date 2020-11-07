@@ -29,6 +29,8 @@ use macroquad::{
     BLACK,
 };
 
+use simdnoise::NoiseBuilder;
+
 mod tile;
 use tile::{Tile, TileType};
 
@@ -59,18 +61,41 @@ async fn main() {
         brightness: 120.into(),
     };
 
+    // We generate two layers with the nosie_offset function as an example
+
     // The vector of neccesary size for the layer to fill.
     let mut tiles = vec![vec![tile.clone(); 64]; 64];
+    let noise = NoiseBuilder::gradient_2d_offset(64., 64, 0., 64)
+        .with_seed(0_i32)
+        .with_freq(0.015)
+        .generate_scaled(0.0, 255.0);
 
     // Place tiles in correct positions.
     for x in 0..64 {
         for y in 0..64 {
             tiles[x][y].position = (x as i16, y as i16).into();
+            tiles[x][y].brightness = (*noise.get(y * 64 + x).unwrap() as u8).into();
         }
     }
-
     // Create the layer filled with those tiles at provided position.
-    let layer = Layer::new((-10, -20), &tiles);
+    let layer0 = Layer::new((0, 0), &tiles);
+
+    // The vector of neccesary size for the layer to fill.
+    let mut tiles = vec![vec![tile.clone(); 64]; 64];
+    let noise = NoiseBuilder::gradient_2d_offset(128., 64, 0., 64)
+        .with_seed(0_i32)
+        .with_freq(0.015)
+        .generate_scaled(0.0, 255.0);
+
+    // Place tiles in correct positions.
+    for x in 0..64 {
+        for y in 0..64 {
+            tiles[x][y].position = (x as i16, y as i16).into();
+            tiles[x][y].brightness = (*noise.get(y * 64 + x).unwrap() as u8).into();
+        }
+    }
+    // Create the layer filled with those tiles at provided position.
+    let layer = Layer::new((64, 0), &tiles);
 
     // The infinite game loop.
     loop {
@@ -97,6 +122,7 @@ async fn main() {
         });
 
         tile_atlas.draw_layer(&layer);
+        tile_atlas.draw_layer(&layer0);
         // Draw the mouse cursor.
         draw_circle(
             mouse_position.x(),
