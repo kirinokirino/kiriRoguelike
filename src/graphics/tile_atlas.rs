@@ -1,7 +1,7 @@
 use macroquad::{draw_texture_ex, load_texture, Color, DrawTextureParams, Rect, Texture2D, Vec2};
 
-use crate::layer::Layer;
-use crate::tile::{Tile, TileType};
+use crate::graphics::layer::Layer;
+use crate::graphics::tile::{Tile, TileType};
 /// Is used to split one `Texture2D` into different tiles.
 #[derive(Clone, Debug)]
 pub struct TileAtlas {

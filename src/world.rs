@@ -1,5 +1,5 @@
-use crate::layer::{Layer, LAYER_HEIGHT, LAYER_WIDTH};
-use crate::tile::{Tile, TileType};
+use crate::graphics::layer::{Layer, LAYER_HEIGHT, LAYER_WIDTH};
+use crate::graphics::tile::{Tile, TileType};
 
 use std::collections::HashMap;
 
@@ -20,9 +20,18 @@ impl From<(i32, i32)> for WorldPosition {
     }
 }
 
+impl From<(u16, u16)> for WorldPosition {
+    fn from(pos: (u16, u16)) -> Self {
+        Self {
+            x: i32::from(pos.0 / LAYER_WIDTH),
+            y: i32::from(pos.1 / LAYER_HEIGHT),
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct World {
-    layer_positions: Vec<Option<WorldPosition>>,
+    positions_of_layers_in_view: Vec<Option<WorldPosition>>,
     layers: HashMap<WorldPosition, Layer>,
 
     generator: Generator,
@@ -32,11 +41,10 @@ impl World {
     pub fn gen_layer(&mut self, pos: WorldPosition) {
         let x = pos.x * i32::from(LAYER_WIDTH);
         let y = pos.y * i32::from(LAYER_HEIGHT);
-        let world_position = WorldPosition { x, y };
-        self.layer_positions.push(Some(world_position));
+        self.positions_of_layers_in_view.push(Some(pos));
         let origin = (i64::from(x), i64::from(y));
         self.layers
-            .insert(world_position, Self::new_layer(&self.generator, origin));
+            .insert(pos, Self::new_layer(&self.generator, origin));
     }
     fn new_layer(gen: &Generator, origin: (i64, i64)) -> Layer {
         let tiles = gen.generate_layer_tiles(origin.0 as f32, origin.1 as f32);
@@ -44,7 +52,7 @@ impl World {
     }
 
     pub fn get_layers(&self) -> Vec<&Layer> {
-        self.layer_positions
+        self.positions_of_layers_in_view
             .iter()
             .filter_map(|p| match p {
                 Some(position) => self.layers.get(position),

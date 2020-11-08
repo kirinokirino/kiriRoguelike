@@ -29,19 +29,14 @@ use macroquad::{
     BLACK,
 };
 
-use simdnoise::NoiseBuilder;
-
-mod tile;
-use tile::{Tile, TileType};
-
-mod tile_atlas;
-use tile_atlas::TileAtlas;
-
-mod layer;
-use layer::Layer;
+mod graphics;
+use graphics::layer::{LAYER_HEIGHT, LAYER_WIDTH};
+use graphics::tile_atlas::TileAtlas;
 
 mod world;
 use world::{World, WorldPosition};
+
+mod character;
 
 mod camera;
 use camera::{mouse_position_relative_to, Camera};
@@ -58,9 +53,15 @@ async fn main() {
     let mut main_camera = Camera::default();
 
     let mut world = World::default();
-    let pos = WorldPosition::from((0, 0));
+    let pos = WorldPosition::from((LAYER_WIDTH * 0, LAYER_HEIGHT * 0));
+    let pos1 = WorldPosition::from((LAYER_WIDTH * 0, LAYER_HEIGHT * 1));
+    let pos2 = WorldPosition::from((LAYER_WIDTH * 1, LAYER_HEIGHT * 0));
+    let pos3 = WorldPosition::from((LAYER_WIDTH * 1, LAYER_HEIGHT * 1));
 
     world.gen_layer(pos);
+    world.gen_layer(pos1);
+    world.gen_layer(pos2);
+    world.gen_layer(pos3);
 
     // The infinite game loop.
     loop {
@@ -86,7 +87,8 @@ async fn main() {
             ..macroquad::Camera2D::default()
         });
 
-        for layer in world.get_layers() {
+        let layers = world.get_layers();
+        for layer in layers {
             tile_atlas.draw_layer(layer);
         }
         // Draw the mouse cursor.
