@@ -22,6 +22,12 @@ impl From<(i16, i16)> for Position {
     }
 }
 
+impl Default for Position {
+    fn default() -> Self {
+        Self { x: 0, y: 0 }
+    }
+}
+
 impl std::fmt::Display for Position {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "x: {}, y: {} ", self.x, self.y)
@@ -41,8 +47,14 @@ pub enum TileType {
     Cat,
 }
 
+impl Default for TileType {
+    fn default() -> Self {
+        Self::Debug
+    }
+}
+
 /// Tile is the visual component of game world entities.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Tile {
     pub tile_type: TileType,
     pub position: Position,

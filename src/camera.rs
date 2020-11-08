@@ -70,7 +70,7 @@ pub fn mouse_position_relative_to(camera: &Camera) -> Vec2 {
     // Takes the mouse coordinates on window and translates that
     // to game world coordinates.
     let mouse = mouse_position();
-    Vec2::new(
+    let center = Vec2::new(
         ((mouse.0 - screen_width() / 2.0) / (screen_width() / 2.0) / camera.zoom.x())
             + camera.target.x(),
         ((-mouse.1 + screen_height() / 2.0)
@@ -78,5 +78,6 @@ pub fn mouse_position_relative_to(camera: &Camera) -> Vec2 {
             / camera.zoom.x()
             / (screen_width() / screen_height()))
             + camera.target.y(),
-    )
+    );
+    Vec2::new(center.x(), center.y())
 }

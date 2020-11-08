@@ -33,7 +33,7 @@ impl TileAtlas {
     pub fn draw_tile(&self, tile: &Tile) {
         let (atlas_x, atlas_y) = Self::get_atlas_position(tile.tile_type);
         let params = DrawTextureParams {
-            dest_size: Some(Vec2::one()),
+            dest_size: Some(Vec2::new(-1.0, 1.0)),
             source: Some(Rect {
                 x: (self.tile_width + 0.3) * atlas_x,
                 y: (self.tile_height + 0.3) * atlas_y,
@@ -45,7 +45,7 @@ impl TileAtlas {
         let (x, y) = tile.position.into();
         draw_texture_ex(
             self.texture,
-            f32::from(x),
+            f32::from(x) + 1.,
             f32::from(y),
             Color::from(tile.brightness),
             params,
@@ -54,10 +54,10 @@ impl TileAtlas {
 
     /// Draws every tile from the provided `&Layer`.
     pub fn draw_layer(&self, layer: &Layer) {
-        for (tile_type, position, brightness) in layer {
+        for (tile_type, position, mut brightness) in layer {
             let (atlas_x, atlas_y) = Self::get_atlas_position(tile_type);
             let params = DrawTextureParams {
-                dest_size: Some(Vec2::one()),
+                dest_size: Some(Vec2::new(-1.0, 1.0)),
                 source: Some(Rect {
                     x: (self.tile_width + 0.3) * atlas_x,
                     y: (self.tile_height + 0.3) * atlas_y,
@@ -68,7 +68,7 @@ impl TileAtlas {
             };
             let (relative_x, relative_y) = position.into();
             let (x, y) = (
-                layer.origin.0 + i64::from(relative_x),
+                layer.origin.0 + i64::from(relative_x) + 1,
                 layer.origin.1 + i64::from(relative_y),
             );
             #[allow(clippy::cast_precision_loss)]

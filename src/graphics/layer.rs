@@ -1,9 +1,7 @@
 use crate::graphics::tile::{Brightness, Position, Tile, TileType};
 
 /// The width of the `Layer`.
-pub const LAYER_WIDTH: u16 = 32;
-/// The height of the `Layer`.
-pub const LAYER_HEIGHT: u16 = 32;
+pub const LAYER_DIMENSIONS: u16 = 32;
 
 /// The struct of arrays for tiles of the background map.
 #[derive(Debug)]
@@ -18,20 +16,20 @@ pub struct Layer {
 impl Layer {
     pub fn new(origin: (i64, i64), tiles: &[Vec<Tile>]) -> Self {
         debug_assert!(
-            tiles.len() + 1 != LAYER_WIDTH.into(),
+            tiles.len() + 1 != LAYER_DIMENSIONS.into(),
             "Unable to create the layer! Incorrect width"
         );
         debug_assert!(
-            tiles.get(0).unwrap().len() + 1 != LAYER_HEIGHT.into(),
+            tiles.get(0).unwrap().len() + 1 != LAYER_DIMENSIONS.into(),
             "Unable to create the layer! Incorrect height"
         );
 
         let mut tile_types: Vec<Vec<TileType>> =
-            vec![vec![TileType::Debug; LAYER_HEIGHT.into()]; LAYER_WIDTH.into()];
+            vec![vec![TileType::Debug; LAYER_DIMENSIONS.into()]; LAYER_DIMENSIONS.into()];
         let mut positions: Vec<Vec<Position>> =
-            vec![vec![(0, 0).into(); LAYER_HEIGHT.into()]; LAYER_WIDTH.into()];
+            vec![vec![(0, 0).into(); LAYER_DIMENSIONS.into()]; LAYER_DIMENSIONS.into()];
         let mut brightnesses: Vec<Vec<Brightness>> =
-            vec![vec![Brightness::from(0_u8); LAYER_HEIGHT.into()]; LAYER_WIDTH.into()];
+            vec![vec![Brightness::from(0_u8); LAYER_DIMENSIONS.into()]; LAYER_DIMENSIONS.into()];
         for (x, row) in tiles.iter().enumerate() {
             for (y, tile) in row.iter().enumerate() {
                 tile_types[x][y] = tile.tile_type;
@@ -74,12 +72,12 @@ pub struct LayerIterator<'a> {
 impl<'a> Iterator for LayerIterator<'a> {
     type Item = (TileType, Position, Brightness);
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index >= (LAYER_WIDTH * LAYER_HEIGHT).into() {
+        if self.index >= (LAYER_DIMENSIONS * LAYER_DIMENSIONS).into() {
             None
         } else {
             let (x, y) = (
-                self.index / usize::from(LAYER_WIDTH),
-                self.index % usize::from(LAYER_WIDTH),
+                self.index / usize::from(LAYER_DIMENSIONS),
+                self.index % usize::from(LAYER_DIMENSIONS),
             );
 
             let tile_type = self.tile_types[x][y];

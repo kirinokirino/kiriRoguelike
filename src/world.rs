@@ -1,4 +1,4 @@
-use crate::graphics::layer::{Layer, LAYER_HEIGHT, LAYER_WIDTH};
+use crate::graphics::layer::{Layer, LAYER_DIMENSIONS};
 use crate::graphics::tile::{Tile, TileType};
 
 use std::collections::HashMap;
@@ -14,8 +14,8 @@ pub struct WorldPosition {
 impl From<(i32, i32)> for WorldPosition {
     fn from(pos: (i32, i32)) -> Self {
         Self {
-            x: pos.0 / i32::from(LAYER_WIDTH),
-            y: pos.1 / i32::from(LAYER_HEIGHT),
+            x: pos.0 / i32::from(LAYER_DIMENSIONS),
+            y: pos.1 / i32::from(LAYER_DIMENSIONS),
         }
     }
 }
@@ -23,8 +23,8 @@ impl From<(i32, i32)> for WorldPosition {
 impl From<(u16, u16)> for WorldPosition {
     fn from(pos: (u16, u16)) -> Self {
         Self {
-            x: i32::from(pos.0 / LAYER_WIDTH),
-            y: i32::from(pos.1 / LAYER_HEIGHT),
+            x: i32::from(pos.0 / LAYER_DIMENSIONS),
+            y: i32::from(pos.1 / LAYER_DIMENSIONS),
         }
     }
 }
@@ -39,8 +39,8 @@ pub struct World {
 
 impl World {
     pub fn gen_layer(&mut self, pos: WorldPosition) {
-        let x = pos.x * i32::from(LAYER_WIDTH);
-        let y = pos.y * i32::from(LAYER_HEIGHT);
+        let x = pos.x * i32::from(LAYER_DIMENSIONS);
+        let y = pos.y * i32::from(LAYER_DIMENSIONS);
         self.positions_of_layers_in_view.push(Some(pos));
         let origin = (i64::from(x), i64::from(y));
         self.layers
@@ -84,10 +84,10 @@ impl Generator {
             brightness: 255.into(),
         };
 
-        let mut tiles = vec![vec![tile.clone(); LAYER_WIDTH.into()]; LAYER_HEIGHT.into()];
+        let mut tiles = vec![vec![tile.clone(); LAYER_DIMENSIONS.into()]; LAYER_DIMENSIONS.into()];
 
-        for y in 0..LAYER_HEIGHT.into() {
-            for x in 0..LAYER_WIDTH.into() {
+        for y in 0..LAYER_DIMENSIONS.into() {
+            for x in 0..LAYER_DIMENSIONS.into() {
                 tiles[y][x].position = (x as i16, y as i16).into();
                 let number = *noise.get(y * 64 + x).unwrap() as u8;
                 tiles[y][x].tile_type = match number {

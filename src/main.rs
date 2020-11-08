@@ -30,7 +30,8 @@ use macroquad::{
 };
 
 mod graphics;
-use graphics::layer::{LAYER_HEIGHT, LAYER_WIDTH};
+use graphics::layer::LAYER_DIMENSIONS;
+use graphics::tile::Tile;
 use graphics::tile_atlas::TileAtlas;
 
 mod world;
@@ -53,16 +54,18 @@ async fn main() {
     let mut main_camera = Camera::default();
 
     let mut world = World::default();
-    let pos = WorldPosition::from((LAYER_WIDTH * 0, LAYER_HEIGHT * 0));
-    let pos1 = WorldPosition::from((LAYER_WIDTH * 0, LAYER_HEIGHT * 1));
-    let pos2 = WorldPosition::from((LAYER_WIDTH * 1, LAYER_HEIGHT * 0));
-    let pos3 = WorldPosition::from((LAYER_WIDTH * 1, LAYER_HEIGHT * 1));
+    let pos = WorldPosition::from((LAYER_DIMENSIONS * 0, LAYER_DIMENSIONS * 0));
+    let pos1 = WorldPosition::from((LAYER_DIMENSIONS * 0, LAYER_DIMENSIONS * 1));
+    let pos2 = WorldPosition::from((LAYER_DIMENSIONS * 1, LAYER_DIMENSIONS * 0));
+    let pos3 = WorldPosition::from((LAYER_DIMENSIONS * 1, LAYER_DIMENSIONS * 1));
 
     world.gen_layer(pos);
     world.gen_layer(pos1);
     world.gen_layer(pos2);
     world.gen_layer(pos3);
 
+    let tile = Tile::default();
+    let mut test: Vec<Tile> = Vec::new();
     // The infinite game loop.
     loop {
         // ===========Input===========
@@ -70,7 +73,11 @@ async fn main() {
         let mouse_position = mouse_position_relative_to(&main_camera);
         left_mouse_pressed = handle_mouse(left_mouse_pressed, mouse_position);
         handle_keyboard(&mut main_camera);
-
+        if left_mouse_pressed {
+            let mut til = tile.clone();
+            til.position = (mouse_position.x() as i16, mouse_position.y() as i16).into();
+            test.push(til);
+        }
         // ===========Update===========
         // Checks for input related to camera and changes it accordingly.
 
@@ -90,6 +97,9 @@ async fn main() {
         let layers = world.get_layers();
         for layer in layers {
             tile_atlas.draw_layer(layer);
+        }
+        for tile in test.iter() {
+            tile_atlas.draw_tile(tile);
         }
         // Draw the mouse cursor.
         draw_circle(
@@ -149,7 +159,7 @@ fn handle_mouse(left_mouse_pressed: bool, mouse_position: Vec2) -> bool {
     if is_mouse_button_down(MouseButton::Left) {
         if !left_mouse_pressed {
             debug!(
-                "Mouse click at relative x:{:.0} , y:{:.0}",
+                "Mouse click at relative x:{:.2} , y:{:.2}",
                 mouse_position.x(),
                 mouse_position.y(),
             );
