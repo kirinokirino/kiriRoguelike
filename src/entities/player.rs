@@ -38,4 +38,8 @@ impl Destination {
     pub fn as_tuple(&self) -> (i16, i16) {
         (self.x.into(), self.y.into())
     }
+
+    pub fn is_zero(&self) -> bool {
+        self.x == 0 && self.y == 0
+    }
 }

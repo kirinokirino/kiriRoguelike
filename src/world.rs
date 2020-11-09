@@ -189,7 +189,7 @@ impl Generator {
             for x in 0..LAYER_DIMENSIONS.into() {
                 let number = *noise.get(y * 64 + x).unwrap() as u8;
                 match number {
-                    220..=255 => {
+                    240..=255 => {
                         let mut entity = entity_base.clone();
                         entity.set_tile(TileType::Coin);
                         entity.set_local_position((x as i16, y as i16).into());

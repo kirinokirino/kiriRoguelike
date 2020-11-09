@@ -42,11 +42,12 @@ impl Entities {
         for location in locations_to_unload.drain(..) {
             self.unload_entites_from_location(&location);
         }
-        self.player
-            .entity
-            .pos
-            .add_tuple(self.player.destination.as_tuple().into());
-        self.player.destination.reset_destination();
+        if !self.player.destination.is_zero() {
+            self.player
+                .entity
+                .add_to_local_position(self.player.destination.as_tuple().into());
+            self.player.destination.reset_destination();
+        }
     }
 
     pub fn draw(&self, tile_atlas: &TileAtlas) {
@@ -55,25 +56,6 @@ impl Entities {
         }
         tile_atlas.draw_entity(&self.player.entity);
     }
-
-    /*
-    fn load_nearby_entities(&mut self, locations_to_load: &Vec<WorldPosition>) {
-        let mut to_generate: Vec<&WorldPosition> = Vec::new();
-        for location in locations_to_load {
-            if let Some(entities) = self.entities_store.remove(location) {
-                self.load_entities(entities);
-                self.loaded_locations.push(location.clone());
-            } else {
-                to_generate.push(location);
-            }
-        }
-
-        for location in to_generate.drain(..) {
-            self.populate_location(location.clone());
-            self.loaded_locations.push(*location);
-        }
-    }
-    */
 
     fn populate_location(&mut self, location: WorldPosition, generator: &Generator) {
         let (x, y) = location.into();
@@ -135,6 +117,41 @@ impl Entity {
 
     pub fn set_local_position(&mut self, pos: Position) {
         self.pos = pos;
+    }
+
+    pub fn add_to_local_position(&mut self, to_add: (i16, i16)) {
+        self.pos.add_tuple(to_add);
+        self.check_world_position();
+    }
+
+    pub fn check_world_position(&mut self) {
+        let dimensions = LAYER_DIMENSIONS as i16;
+        let (mut x, mut y) = self.pos.into();
+        let (mut world_x, mut world_y) = self.world_pos.into();
+        let mut has_change = false;
+        if x >= dimensions {
+            world_x += 1;
+            x -= dimensions;
+            has_change = true;
+        } else if x < 0 {
+            world_x -= 1;
+            x += dimensions;
+            has_change = true;
+        }
+        if y >= dimensions {
+            world_y += 1;
+            y -= dimensions;
+            has_change = true;
+        } else if y < 0 {
+            world_y -= 1;
+            y += dimensions;
+            has_change = true;
+        }
+
+        if has_change {
+            self.set_local_position((x, y).into());
+            self.set_world_position(WorldPosition::new(world_x, world_y));
+        }
     }
 
     pub fn set_world_position(&mut self, world_pos: WorldPosition) {

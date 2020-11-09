@@ -67,15 +67,12 @@ async fn main() {
         left_mouse_pressed = handle_mouse(left_mouse_pressed, mouse_position);
 
         entities.input(handle_keyboard(&mut main_camera));
-
-        let chunk_x = (mouse_position.x() / f32::from(LAYER_DIMENSIONS)).floor() as i32;
-        let chunk_y = (mouse_position.y() / f32::from(LAYER_DIMENSIONS)).floor() as i32;
+        let player_pos = entities.player.entity.world_pos.clone();
         // ===========Update===========
         // Checks for input related to camera and changes it accordingly.
 
         // Update the world!
-        // Imagine the mouse position is the player for now.
-        world.update(&WorldPosition::new(chunk_x, chunk_y), &generator);
+        world.update(&player_pos, &generator);
         entities.update(&world, &generator);
         // ===========Draw===========
         // Fill the canvas with white.
