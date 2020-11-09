@@ -35,7 +35,7 @@ use graphics::tile::Tile;
 use graphics::tile_atlas::TileAtlas;
 
 mod world;
-use world::{World, WorldPosition};
+use world::{Generator, World, WorldPosition};
 
 mod entities;
 use entities::entities::Entities;
@@ -56,7 +56,7 @@ async fn main() {
 
     // Create the world!
     let mut world = World::default();
-
+    let mut generator = Generator::default();
     let mut entities = Entities::default();
 
     // The infinite game loop.
@@ -74,8 +74,8 @@ async fn main() {
 
         // Update the world!
         // Imagine the mouse position is the player for now.
-        world.update(&WorldPosition::new(chunk_x, chunk_y));
-
+        world.update(&WorldPosition::new(chunk_x, chunk_y), &generator);
+        entities.update(&world, &generator);
         // ===========Draw===========
         // Fill the canvas with white.
         clear_background(BLACK);

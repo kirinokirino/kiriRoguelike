@@ -2,6 +2,8 @@ use crate::graphics::layer::{Layer, LAYER_DIMENSIONS};
 use crate::graphics::tile::{Tile, TileType};
 use crate::graphics::tile_atlas::TileAtlas;
 
+use crate::entities::entities::Entity;
+
 use std::collections::HashMap;
 
 use simdnoise::NoiseBuilder;
@@ -47,14 +49,12 @@ impl From<(u16, u16)> for WorldPosition {
 pub struct World {
     pub positions_of_layers_in_view: Vec<WorldPosition>,
     layers: HashMap<WorldPosition, Layer>,
-
-    generator: Generator,
 }
 
 impl World {
     /// Updates and possibly generates the layers that should be in view.
-    pub fn update(&mut self, player: &WorldPosition) {
-        self.set_visible_layers(player);
+    pub fn update(&mut self, player: &WorldPosition, generator: &Generator) {
+        self.set_visible_layers(player, generator);
     }
 
     /// Draws every layer that is in view.
@@ -67,13 +67,12 @@ impl World {
 
     /// Generates the layer at position and adds it to the world.
     /// (Or updates it the position is already in the world).
-    fn gen_layer(&mut self, pos: WorldPosition) {
+    fn gen_layer(&mut self, pos: WorldPosition, generator: &Generator) {
         let x = pos.x * i32::from(LAYER_DIMENSIONS);
         let y = pos.y * i32::from(LAYER_DIMENSIONS);
         self.positions_of_layers_in_view.push(pos);
         let origin = (i64::from(x), i64::from(y));
-        self.layers
-            .insert(pos, Self::new_layer(&self.generator, origin));
+        self.layers.insert(pos, Self::new_layer(generator, origin));
     }
 
     /// Utility function to create a new `Layer`
@@ -96,7 +95,7 @@ impl World {
 
     /// Updates layers in view to the square around the player position in the world,
     /// generating new layers if necessary.
-    fn set_visible_layers(&mut self, player_position: &WorldPosition) {
+    fn set_visible_layers(&mut self, player_position: &WorldPosition, generator: &Generator) {
         let needed_positions: Vec<WorldPosition> = vec![
             WorldPosition::new(player_position.x - 1, player_position.y - 1),
             WorldPosition::new(player_position.x, player_position.y - 1),
@@ -116,7 +115,7 @@ impl World {
         }
 
         for layer in to_generate {
-            self.gen_layer(layer.clone());
+            self.gen_layer(layer.clone(), generator);
         }
 
         self.positions_of_layers_in_view = needed_positions;
@@ -127,26 +126,24 @@ impl Default for World {
     fn default() -> Self {
         let positions_of_layers_in_view: Vec<WorldPosition> = Vec::with_capacity(9);
         let layers: HashMap<WorldPosition, Layer> = HashMap::new();
-        let generator: Generator = Generator::default();
         Self {
             positions_of_layers_in_view,
             layers,
-            generator,
         }
     }
 }
 
 #[derive(Default)]
-struct Generator {
+pub struct Generator {
     seed: i32,
 }
 
 impl Generator {
-    fn new(seed: i32) -> Self {
+    pub fn new(seed: i32) -> Self {
         Self { seed }
     }
 
-    fn generate_layer_tiles(&self, x_offset: f32, y_offset: f32) -> Vec<Vec<Tile>> {
+    pub fn generate_layer_tiles(&self, x_offset: f32, y_offset: f32) -> Vec<Vec<Tile>> {
         let noise = NoiseBuilder::gradient_2d_offset(x_offset, 64, y_offset, 64)
             .with_seed(self.seed)
             .with_freq(0.015)
@@ -172,5 +169,37 @@ impl Generator {
         }
 
         tiles
+    }
+
+    pub fn generate_entities(&self, x_offset: f32, y_offset: f32) -> Vec<Entity> {
+        let noise = NoiseBuilder::gradient_2d_offset(x_offset, 64, y_offset, 64)
+            .with_seed(self.seed)
+            .with_freq(0.2)
+            .generate_scaled(0.0, 255.0);
+
+        let entity_base = Entity {
+            world_pos: (0, 0).into(),
+            pos: (0, 0).into(),
+            tile: TileType::Debug,
+        };
+
+        let mut entities = Vec::new();
+
+        for y in 0..LAYER_DIMENSIONS.into() {
+            for x in 0..LAYER_DIMENSIONS.into() {
+                let number = *noise.get(y * 64 + x).unwrap() as u8;
+                match number {
+                    220..=255 => {
+                        let mut entity = entity_base.clone();
+                        entity.set_tile(TileType::Coin);
+                        entity.set_local_position((x as i16, y as i16).into());
+                        entities.push(entity);
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        entities
     }
 }

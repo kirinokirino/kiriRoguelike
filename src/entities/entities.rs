@@ -1,7 +1,7 @@
 use crate::graphics::layer::LAYER_DIMENSIONS;
 use crate::graphics::tile::{Position, Tile, TileType};
 use crate::graphics::tile_atlas::TileAtlas;
-use crate::world::{World, WorldPosition};
+use crate::world::{Generator, World, WorldPosition};
 
 use crate::entities::player::Player;
 
@@ -12,18 +12,20 @@ use std::collections::HashMap;
 pub struct Entities {
     pub player: Player,
 
+    entities: Vec<Entity>,
+
     loaded_locations: Vec<WorldPosition>,
     entities_store: HashMap<WorldPosition, Vec<Entity>>,
 }
 
 impl Entities {
-    fn update(&mut self, world: &World) {
+    pub fn update(&mut self, world: &World, generator: &Generator) {
         let active_locations = &world.positions_of_layers_in_view;
         for active_location in active_locations.iter() {
             if self.loaded_locations.contains(active_location) {
                 // Update
             } else {
-                self.load_nearby_entities(&active_locations);
+                self.load_entities_at_location(active_location, generator);
             }
         }
 
@@ -35,16 +37,19 @@ impl Entities {
         }
 
         for location in locations_to_unload.drain(..) {
-            self.unload_entites_from(&location);
+            self.unload_entites_from_location(&location);
         }
     }
 
     pub fn draw(&self, tile_atlas: &TileAtlas) {
+        for entity in self.entities.iter() {
+            tile_atlas.draw_entity(entity)
+        }
         tile_atlas.draw_entity(&self.player.entity);
     }
 
+    /*
     fn load_nearby_entities(&mut self, locations_to_load: &Vec<WorldPosition>) {
-        self.loaded_locations.clear();
         let mut to_generate: Vec<&WorldPosition> = Vec::new();
         for location in locations_to_load {
             if let Some(entities) = self.entities_store.remove(location) {
@@ -60,14 +65,43 @@ impl Entities {
             self.loaded_locations.push(*location);
         }
     }
-    fn populate_location(&mut self, location: WorldPosition) {}
-    fn unload_entites_from(&mut self, location: &WorldPosition) {}
-    fn load_entities(&mut self, entities: Vec<Entity>) {
-        /*
-        for entity in entities {
-            self.positions.push(entity.pos.clone());
+    */
+
+    fn populate_location(&mut self, location: WorldPosition, generator: &Generator) {
+        let (x, y) = location.into();
+        let scaled_x = x * i32::from(LAYER_DIMENSIONS);
+        let scaled_y = y * i32::from(LAYER_DIMENSIONS);
+        let mut entities = generator.generate_entities(scaled_x as f32, scaled_y as f32);
+
+        for mut entity in entities {
+            entity.set_world_position(location.clone());
+            self.entities.push(entity);
         }
-        */
+    }
+
+    fn load_entities_at_location(&mut self, location: &WorldPosition, generator: &Generator) {
+        if let Some(entities) = self.entities_store.remove(location) {
+            self.load_entities(entities);
+        } else {
+            self.populate_location(*location, generator);
+        }
+        self.loaded_locations.push(*location);
+    }
+
+    fn unload_entites_from_location(&mut self, location: &WorldPosition) {
+        let mut entities_to_store: Vec<Entity> = Vec::new();
+        for entity in self.entities.iter() {
+            if entity.world_pos == *location {
+                entities_to_store.push(entity.clone());
+            }
+        }
+        self.entities.retain(|e| e.world_pos != *location);
+        self.entities_store.insert(*location, entities_to_store);
+        self.loaded_locations.retain(|e| e != location);
+    }
+
+    fn load_entities(&mut self, mut entities: Vec<Entity>) {
+        self.entities.extend(entities.drain(..));
     }
 }
 
@@ -89,6 +123,14 @@ impl Entity {
 
     pub fn set_tile(&mut self, tile: TileType) {
         self.tile = tile;
+    }
+
+    pub fn set_local_position(&mut self, pos: Position) {
+        self.pos = pos;
+    }
+
+    pub fn set_world_position(&mut self, world_pos: WorldPosition) {
+        self.world_pos = world_pos;
     }
 
     pub fn get_absolute_position(&self) -> (f32, f32) {
