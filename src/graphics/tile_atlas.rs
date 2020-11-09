@@ -54,7 +54,7 @@ impl TileAtlas {
 
     /// Draws every tile from the provided `&Layer`.
     pub fn draw_layer(&self, layer: &Layer) {
-        for (tile_type, position, mut brightness) in layer {
+        for (tile_type, position, brightness) in layer {
             let (atlas_x, atlas_y) = Self::get_atlas_position(tile_type);
             let params = DrawTextureParams {
                 dest_size: Some(Vec2::new(-1.0, 1.0)),

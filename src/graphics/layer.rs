@@ -1,7 +1,7 @@
 use crate::graphics::tile::{Brightness, Position, Tile, TileType};
 
 /// The width of the `Layer`.
-pub const LAYER_DIMENSIONS: u16 = 32;
+pub const LAYER_DIMENSIONS: u16 = 16;
 
 /// The struct of arrays for tiles of the background map.
 #[derive(Debug)]

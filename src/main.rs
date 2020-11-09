@@ -53,19 +53,9 @@ async fn main() {
     // Create main camera.
     let mut main_camera = Camera::default();
 
+    // Create the world!
     let mut world = World::default();
-    let pos = WorldPosition::from((LAYER_DIMENSIONS * 0, LAYER_DIMENSIONS * 0));
-    let pos1 = WorldPosition::from((LAYER_DIMENSIONS * 0, LAYER_DIMENSIONS * 1));
-    let pos2 = WorldPosition::from((LAYER_DIMENSIONS * 1, LAYER_DIMENSIONS * 0));
-    let pos3 = WorldPosition::from((LAYER_DIMENSIONS * 1, LAYER_DIMENSIONS * 1));
 
-    world.gen_layer(pos);
-    world.gen_layer(pos1);
-    world.gen_layer(pos2);
-    world.gen_layer(pos3);
-
-    let tile = Tile::default();
-    let mut test: Vec<Tile> = Vec::new();
     // The infinite game loop.
     loop {
         // ===========Input===========
@@ -73,20 +63,21 @@ async fn main() {
         let mouse_position = mouse_position_relative_to(&main_camera);
         left_mouse_pressed = handle_mouse(left_mouse_pressed, mouse_position);
         handle_keyboard(&mut main_camera);
-        if left_mouse_pressed {
-            let mut til = tile.clone();
-            til.position = (mouse_position.x() as i16, mouse_position.y() as i16).into();
-            test.push(til);
-        }
+
+        let chunk_x = (mouse_position.x() / f32::from(LAYER_DIMENSIONS)).floor() as i32;
+        let chunk_y = (mouse_position.y() / f32::from(LAYER_DIMENSIONS)).floor() as i32;
         // ===========Update===========
         // Checks for input related to camera and changes it accordingly.
+
+        // Update the world!
+        // Imagine the mouse position is the player for now.
+        world.update(&WorldPosition::new(chunk_x, chunk_y));
 
         // ===========Draw===========
         // Fill the canvas with white.
         clear_background(BLACK);
 
         // --- Camera space, render game objects.
-
         let (target, zoom) = main_camera.get();
         set_camera(Camera2D {
             target,
@@ -94,13 +85,9 @@ async fn main() {
             ..macroquad::Camera2D::default()
         });
 
-        let layers = world.get_layers();
-        for layer in layers {
-            tile_atlas.draw_layer(layer);
-        }
-        for tile in test.iter() {
-            tile_atlas.draw_tile(tile);
-        }
+        // Draw the world!
+        world.draw(&tile_atlas);
+
         // Draw the mouse cursor.
         draw_circle(
             mouse_position.x(),
@@ -154,16 +141,19 @@ fn handle_keyboard(camera: &mut Camera) {
     if is_key_pressed(KeyCode::Up) {}
 }
 
-/// Handle the mouse. Print the click position.
+/// Handle the mouse. Print the coordinates where the mouse was clicked.
 fn handle_mouse(left_mouse_pressed: bool, mouse_position: Vec2) -> bool {
     if is_mouse_button_down(MouseButton::Left) {
         if !left_mouse_pressed {
             debug!(
-                "Mouse click at relative x:{:.2} , y:{:.2}",
+                "Mouse click x:{:.0}|{:.1} , y:{:.0}|{:.1}",
+                (mouse_position.x() / f32::from(LAYER_DIMENSIONS)).floor(),
                 mouse_position.x(),
+                (mouse_position.y() / f32::from(LAYER_DIMENSIONS)).floor(),
                 mouse_position.y(),
             );
         }
+
         true
     } else {
         false
