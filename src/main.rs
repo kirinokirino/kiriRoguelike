@@ -65,7 +65,8 @@ async fn main() {
         // Get the mouse position inside the game world.
         let mouse_position = mouse_position_relative_to(&main_camera);
         left_mouse_pressed = handle_mouse(left_mouse_pressed, mouse_position);
-        handle_keyboard(&mut main_camera);
+
+        entities.input(handle_keyboard(&mut main_camera));
 
         let chunk_x = (mouse_position.x() / f32::from(LAYER_DIMENSIONS)).floor() as i32;
         let chunk_y = (mouse_position.y() / f32::from(LAYER_DIMENSIONS)).floor() as i32;
@@ -138,12 +139,23 @@ fn draw_ui() {
 }
 
 /// Handle the input from the keyboard.
-fn handle_keyboard(camera: &mut Camera) {
+fn handle_keyboard(camera: &mut Camera) -> (i8, i8) {
     camera.scroll(0.03, 0.97);
-    if is_key_pressed(KeyCode::Right) {}
-    if is_key_pressed(KeyCode::Left) {}
-    if is_key_pressed(KeyCode::Down) {}
-    if is_key_pressed(KeyCode::Up) {}
+    let mut res = (0, 0);
+    if is_key_pressed(KeyCode::Right) {
+        res.0 = 1;
+    }
+    if is_key_pressed(KeyCode::Left) {
+        res.0 = -1;
+    }
+    if is_key_pressed(KeyCode::Down) {
+        res.1 = -1;
+    }
+    if is_key_pressed(KeyCode::Up) {
+        res.1 = 1;
+    }
+
+    res
 }
 
 /// Handle the mouse. Print the coordinates where the mouse was clicked.

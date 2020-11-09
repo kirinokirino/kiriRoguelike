@@ -1,10 +1,18 @@
 use macroquad::Color;
 
+use core::ops::Add;
 /// Coordinates in the game world, relative to the nearest layer origin.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Position {
     x: i16,
     y: i16,
+}
+
+impl Position {
+    pub fn add_tuple(&mut self, to_add: (i16, i16)) {
+        self.x += to_add.0;
+        self.y += to_add.1;
+    }
 }
 
 impl Into<(i16, i16)> for Position {

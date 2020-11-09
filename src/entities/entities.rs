@@ -19,6 +19,9 @@ pub struct Entities {
 }
 
 impl Entities {
+    pub fn input(&mut self, dest: (i8, i8)) {
+        self.player.destination.set_destination(dest.0, dest.1);
+    }
     pub fn update(&mut self, world: &World, generator: &Generator) {
         let active_locations = &world.positions_of_layers_in_view;
         for active_location in active_locations.iter() {
@@ -39,6 +42,11 @@ impl Entities {
         for location in locations_to_unload.drain(..) {
             self.unload_entites_from_location(&location);
         }
+        self.player
+            .entity
+            .pos
+            .add_tuple(self.player.destination.as_tuple().into());
+        self.player.destination.reset_destination();
     }
 
     pub fn draw(&self, tile_atlas: &TileAtlas) {
