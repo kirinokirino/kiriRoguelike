@@ -74,6 +74,7 @@ async fn main() {
         // Update the world!
         world.update(&player_pos, &generator);
         entities.update(&world, &generator);
+        main_camera.set_target(entities.player.entity.get_absolute_position().into());
         // ===========Draw===========
         // Fill the canvas with white.
         clear_background(BLACK);
@@ -101,7 +102,7 @@ async fn main() {
 
         // --- Fixed screen space, render ui.
         set_default_camera();
-        draw_ui();
+        //draw_ui();
 
         next_frame().await
     }
@@ -109,30 +110,9 @@ async fn main() {
 
 /// Render the fixed screen ui. (after `set_default_camera()`)
 fn draw_ui() {
-    let text_color: Color = Color([200, 200, 200, 255]);
-    let font_size = 30.;
+    let text_color: Color = Color([100, 40, 100, 120]);
+    let font_size = 42.;
     let padding_left = 10.;
-    draw_text(
-        ",aoe to move camera",
-        padding_left,
-        font_size * 0.,
-        font_size,
-        text_color,
-    );
-    draw_text(
-        "'. to zoom camera",
-        padding_left,
-        font_size * 1.,
-        font_size,
-        text_color,
-    );
-    draw_text(
-        "arrow keys to move the player",
-        padding_left,
-        font_size * 2.,
-        font_size,
-        text_color,
-    )
 }
 
 /// Handle the input from the keyboard.

@@ -17,6 +17,7 @@ impl Camera {
 
     /// Get and handle the input related to the camera.
     pub fn scroll(&mut self, scroll_speed: f32, zoom_speed: f32) {
+        /*
         // Move the camera:
         // UP
         if is_key_down(KeyCode::Comma) {
@@ -38,6 +39,8 @@ impl Camera {
             self.target
                 .set_x(self.target.x() + scroll_speed / self.zoom.x())
         }
+        */
+
         // Change the camera zoom:
         // Further
         if is_key_down(KeyCode::Apostrophe) {
