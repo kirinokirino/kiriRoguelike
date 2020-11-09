@@ -37,7 +37,8 @@ use graphics::tile_atlas::TileAtlas;
 mod world;
 use world::{World, WorldPosition};
 
-mod character;
+mod entities;
+use entities::entities::Entities;
 
 mod camera;
 use camera::{mouse_position_relative_to, Camera};
@@ -55,6 +56,8 @@ async fn main() {
 
     // Create the world!
     let mut world = World::default();
+
+    let mut entities = Entities::default();
 
     // The infinite game loop.
     loop {
@@ -87,6 +90,8 @@ async fn main() {
 
         // Draw the world!
         world.draw(&tile_atlas);
+
+        entities.draw(&tile_atlas);
 
         // Draw the mouse cursor.
         draw_circle(

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 use simdnoise::NoiseBuilder;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Default)]
 pub struct WorldPosition {
     x: i32,
     y: i32,
@@ -16,6 +16,12 @@ pub struct WorldPosition {
 impl WorldPosition {
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
+    }
+}
+
+impl Into<(i32, i32)> for WorldPosition {
+    fn into(self) -> (i32, i32) {
+        (self.x, self.y)
     }
 }
 
@@ -39,7 +45,7 @@ impl From<(u16, u16)> for WorldPosition {
 
 /// Handles most of the generating and drawing the terrain.
 pub struct World {
-    positions_of_layers_in_view: Vec<WorldPosition>,
+    pub positions_of_layers_in_view: Vec<WorldPosition>,
     layers: HashMap<WorldPosition, Layer>,
 
     generator: Generator,
