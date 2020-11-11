@@ -12,7 +12,7 @@ impl Camera {
     }
 
     pub fn set_target(&mut self, new_target: Vec2) {
-        self.target = new_target;
+        self.target = Vec2::new(new_target.x() - 0.5, new_target.y() + 0.5);
     }
 
     /// Get and handle the input related to the camera.

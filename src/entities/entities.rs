@@ -1,5 +1,5 @@
 use crate::graphics::layer::LAYER_DIMENSIONS;
-use crate::graphics::tile::{Position, Tile, TileType};
+use crate::graphics::tile::{Brightness, Position, Tile, TileType};
 use crate::graphics::tile_atlas::TileAtlas;
 use crate::world::{Generator, World, WorldPosition};
 
@@ -51,10 +51,16 @@ impl Entities {
     }
 
     pub fn draw(&self, tile_atlas: &TileAtlas) {
+        let player_pos = self.player.entity.get_absolute_position();
         for entity in self.entities.iter() {
-            tile_atlas.draw_entity(entity)
+            let entity_pos = entity.get_absolute_position();
+            let dist = distance(player_pos, entity_pos);
+            if dist < self.player.vision_range.into() {
+                let brightness = self.player.calc_brightness(dist);
+                tile_atlas.draw_entity(entity, brightness);
+            }
         }
-        tile_atlas.draw_entity(&self.player.entity);
+        tile_atlas.draw_entity(&self.player.entity, 255.into());
     }
 
     fn populate_location(&mut self, location: WorldPosition, generator: &Generator) {
@@ -168,3 +174,11 @@ impl Entity {
     }
 }
 struct Opaque(Position);
+
+pub fn distance(first: (f32, f32), second: (f32, f32)) -> f32 {
+    let (x1, y1) = first;
+    let (x2, y2) = second;
+    let distance_x = (x1 - x2).abs();
+    let distance_y = (y1 - y2).abs();
+    distance_x.hypot(distance_y).abs()
+}

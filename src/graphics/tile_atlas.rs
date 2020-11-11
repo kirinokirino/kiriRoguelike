@@ -1,9 +1,10 @@
 use macroquad::{draw_texture_ex, load_texture, Color, DrawTextureParams, Rect, Texture2D, Vec2};
 
 use crate::graphics::layer::Layer;
-use crate::graphics::tile::{Tile, TileType};
+use crate::graphics::tile::{Brightness, Tile, TileType};
 
-use crate::entities::entities::Entity;
+use crate::entities::entities::{distance, Entity};
+use crate::entities::player::Player;
 /// Is used to split one `Texture2D` into different tiles.
 #[derive(Clone, Debug)]
 pub struct TileAtlas {
@@ -32,48 +33,53 @@ impl TileAtlas {
     }
 
     /// Draws the provided `&Tile`.
-    pub fn draw_tile(&self, tile: &Tile) {
+    pub fn draw_tile(&self, tile: &Tile, brightness: Brightness) {
         let params = self.get_texture_params(tile.tile_type);
         let (x, y) = tile.position.into();
         draw_texture_ex(
             self.texture,
             f32::from(x) + 1.,
             f32::from(y),
-            Color::from(tile.brightness),
+            Color::from(brightness),
             params,
         );
     }
 
     /// Draws the provided `&Entity`.
-    pub fn draw_entity(&self, entity: &Entity) {
+    pub fn draw_entity(&self, entity: &Entity, brightness: Brightness) {
         let params = self.get_texture_params(entity.tile);
         let (x, y) = entity.get_absolute_position();
         draw_texture_ex(
             self.texture,
-            f32::from(x) + 1.,
+            f32::from(x),
             f32::from(y),
-            Color::new(255., 255., 255., 255.),
+            Color::from(brightness),
             params,
         );
     }
 
     /// Draws every tile from the provided `&Layer`.
-    pub fn draw_layer(&self, layer: &Layer) {
-        for (tile_type, position, brightness) in layer {
-            let params = self.get_texture_params(tile_type);
+    pub fn draw_layer(&self, layer: &Layer, player: &Player) {
+        for (tile_type, position) in layer {
             let (relative_x, relative_y) = position.into();
             let (x, y) = (
-                layer.origin.0 + i64::from(relative_x) + 1,
-                layer.origin.1 + i64::from(relative_y),
+                (layer.origin.0 + i64::from(relative_x) + 1) as f32,
+                (layer.origin.1 + i64::from(relative_y)) as f32,
             );
-            #[allow(clippy::cast_precision_loss)]
-            draw_texture_ex(
-                self.texture,
-                x as f32,
-                y as f32,
-                Color::from(brightness),
-                params,
-            );
+
+            let dist = distance(player.entity.get_absolute_position(), (x, y));
+            if dist < player.vision_range.into() {
+                let brightness = player.calc_brightness(dist);
+                let params = self.get_texture_params(tile_type);
+                #[allow(clippy::cast_precision_loss)]
+                draw_texture_ex(
+                    self.texture,
+                    x as f32,
+                    y as f32,
+                    Color::from(brightness),
+                    params,
+                );
+            }
         }
     }
 

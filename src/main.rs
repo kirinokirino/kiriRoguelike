@@ -88,8 +88,8 @@ async fn main() {
         });
 
         // Draw the world!
-        world.draw(&tile_atlas);
-
+        let player = &entities.player;
+        world.draw(&tile_atlas, &player);
         entities.draw(&tile_atlas);
 
         // Draw the mouse cursor.

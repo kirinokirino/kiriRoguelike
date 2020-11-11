@@ -1,10 +1,21 @@
 use crate::entities::entities::Entity;
-use crate::graphics::tile::TileType;
+use crate::graphics::tile::{Brightness, TileType};
 
 #[derive(Debug, Clone)]
 pub struct Player {
     pub entity: Entity,
     pub destination: Destination,
+    pub vision_range: i16,
+}
+
+impl Player {
+    pub fn calc_brightness(&self, distance: f32) -> Brightness {
+        if distance > self.vision_range.into() {
+            Brightness::from(0)
+        } else {
+            Brightness::from((255. - 255. / (f32::from(self.vision_range) / distance)) as u8)
+        }
+    }
 }
 
 impl Default for Player {
@@ -14,6 +25,7 @@ impl Default for Player {
         Self {
             entity,
             destination: Destination::default(),
+            vision_range: 16,
         }
     }
 }

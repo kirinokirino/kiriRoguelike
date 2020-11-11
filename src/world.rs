@@ -3,6 +3,7 @@ use crate::graphics::tile::{Tile, TileType};
 use crate::graphics::tile_atlas::TileAtlas;
 
 use crate::entities::entities::Entity;
+use crate::entities::player::Player;
 
 use std::collections::HashMap;
 
@@ -53,15 +54,15 @@ pub struct World {
 
 impl World {
     /// Updates and possibly generates the layers that should be in view.
-    pub fn update(&mut self, player: &WorldPosition, generator: &Generator) {
-        self.set_visible_layers(player, generator);
+    pub fn update(&mut self, player_chunk: &WorldPosition, generator: &Generator) {
+        self.set_visible_layers(player_chunk, generator);
     }
 
     /// Draws every layer that is in view.
-    pub fn draw(&self, tile_atlas: &TileAtlas) {
+    pub fn draw(&self, tile_atlas: &TileAtlas, player: &Player) {
         let layers = self.get_visible_layers();
         for layer in layers {
-            tile_atlas.draw_layer(layer);
+            tile_atlas.draw_layer(layer, player);
         }
     }
 
@@ -152,7 +153,6 @@ impl Generator {
         let tile = Tile {
             tile_type: TileType::Debug,
             position: (0, 0).into(),
-            brightness: 255.into(),
         };
 
         let mut tiles = vec![vec![tile.clone(); LAYER_DIMENSIONS.into()]; LAYER_DIMENSIONS.into()];

@@ -66,7 +66,6 @@ impl Default for TileType {
 pub struct Tile {
     pub tile_type: TileType,
     pub position: Position,
-    pub brightness: Brightness,
 }
 
 impl Tile {
@@ -75,7 +74,6 @@ impl Tile {
         Self {
             tile_type,
             position,
-            brightness: Brightness::default(),
         }
     }
 }
