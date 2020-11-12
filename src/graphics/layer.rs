@@ -1,4 +1,4 @@
-use crate::graphics::tile::{Brightness, Position, Tile, TileType};
+use crate::graphics::tile::{Position, Tile, TileType};
 
 /// The width of the `Layer`.
 pub const LAYER_DIMENSIONS: u16 = 32;

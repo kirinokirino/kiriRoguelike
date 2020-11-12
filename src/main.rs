@@ -24,18 +24,16 @@
 )]
 
 use macroquad::{
-    clear_background, debug, draw_circle, draw_text, is_key_pressed, is_mouse_button_down,
-    next_frame, set_camera, set_default_camera, warn, Camera2D, Color, KeyCode, MouseButton, Vec2,
-    BLACK,
+    clear_background, debug, draw_circle, is_key_pressed, is_mouse_button_down, next_frame,
+    set_camera, set_default_camera, warn, Camera2D, Color, KeyCode, MouseButton, Vec2,
 };
 
 mod graphics;
 use graphics::layer::LAYER_DIMENSIONS;
-use graphics::tile::Tile;
 use graphics::tile_atlas::TileAtlas;
 
 mod world;
-use world::{Generator, World, WorldPosition};
+use world::{Generator, World};
 
 mod entities;
 use entities::entities::Entities;
@@ -77,7 +75,9 @@ async fn main() {
         main_camera.set_target(entities.player.entity.get_absolute_position().into());
         // ===========Draw===========
         // Fill the canvas with white.
-        clear_background(BLACK);
+        clear_background(Color {
+            0: [40, 40, 40, 255],
+        });
 
         // --- Camera space, render game objects.
         let (target, zoom) = main_camera.get();
@@ -106,13 +106,6 @@ async fn main() {
 
         next_frame().await
     }
-}
-
-/// Render the fixed screen ui. (after `set_default_camera()`)
-fn draw_ui() {
-    let text_color: Color = Color([100, 40, 100, 120]);
-    let font_size = 42.;
-    let padding_left = 10.;
 }
 
 /// Handle the input from the keyboard.

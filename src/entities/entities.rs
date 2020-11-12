@@ -1,5 +1,5 @@
 use crate::graphics::layer::LAYER_DIMENSIONS;
-use crate::graphics::tile::{Brightness, Position, Tile, TileType};
+use crate::graphics::tile::{Position, TileType};
 use crate::graphics::tile_atlas::TileAtlas;
 use crate::world::{Generator, World, WorldPosition};
 
@@ -43,9 +43,19 @@ impl Entities {
             self.unload_entites_from_location(&location);
         }
         if !self.player.destination.is_zero() {
-            self.player
-                .entity
-                .add_to_local_position(self.player.destination.as_tuple().into());
+            let future_pos = self.player.calc_future_pos();
+            if !self
+                .entities
+                .iter()
+                .find(|&e| e.pos == future_pos.1 && e.world_pos == future_pos.0)
+                .and_then(Entity::is_blocking)
+                .unwrap_or_else(|| false)
+            {
+                self.player
+                    .entity
+                    .add_to_local_position(self.player.destination.as_tuple().into());
+            }
+
             self.player.destination.reset_destination();
         }
     }
@@ -127,41 +137,41 @@ impl Entity {
 
     pub fn add_to_local_position(&mut self, to_add: (i16, i16)) {
         self.pos.add_tuple(to_add);
-        self.check_world_position();
+        self.set_position(Self::get_checked_position(self.world_pos, self.pos));
     }
 
-    pub fn check_world_position(&mut self) {
+    pub fn get_checked_position(
+        world_pos: WorldPosition,
+        pos: Position,
+    ) -> (WorldPosition, Position) {
         let dimensions = LAYER_DIMENSIONS as i16;
-        let (mut x, mut y) = self.pos.into();
-        let (mut world_x, mut world_y) = self.world_pos.into();
+        let (mut x, mut y) = pos.into();
+        let (mut world_x, mut world_y) = world_pos.into();
         let mut has_change = false;
         if x >= dimensions {
             world_x += 1;
-            x -= dimensions;
-            has_change = true;
+            x -= dimensions
         } else if x < 0 {
             world_x -= 1;
             x += dimensions;
-            has_change = true;
         }
         if y >= dimensions {
             world_y += 1;
             y -= dimensions;
-            has_change = true;
         } else if y < 0 {
             world_y -= 1;
             y += dimensions;
-            has_change = true;
         }
-
-        if has_change {
-            self.set_local_position((x, y).into());
-            self.set_world_position(WorldPosition::new(world_x, world_y));
-        }
+        (WorldPosition::new(world_x, world_y), Position { x, y })
     }
 
     pub fn set_world_position(&mut self, world_pos: WorldPosition) {
         self.world_pos = world_pos;
+    }
+
+    pub fn set_position(&mut self, pos: (WorldPosition, Position)) {
+        self.set_world_position(pos.0);
+        self.set_local_position(pos.1);
     }
 
     pub fn get_absolute_position(&self) -> (f32, f32) {
@@ -171,6 +181,23 @@ impl Entity {
             ((world_x * i32::from(LAYER_DIMENSIONS)) + i32::from(local_x)) as f32,
             ((world_y * i32::from(LAYER_DIMENSIONS)) + i32::from(local_y)) as f32,
         )
+    }
+
+    pub const fn is_blocking(entity: &Entity) -> Option<bool> {
+        match entity.tile {
+            TileType::Debug => Some(false),
+            TileType::Wall => Some(true),
+            TileType::GrassFloor => Some(false),
+            TileType::Pengu => Some(true),
+            TileType::Door => Some(true),
+            TileType::Chest => Some(false),
+            TileType::Coin => Some(false),
+            TileType::Cat => Some(true),
+            TileType::StoneFloor => Some(false),
+            TileType::Bush => Some(true),
+            TileType::Stones => Some(false),
+            TileType::Pond => Some(true),
+        }
     }
 }
 struct Opaque(Position);

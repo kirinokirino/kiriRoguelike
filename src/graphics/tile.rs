@@ -1,11 +1,9 @@
 use macroquad::Color;
-
-use core::ops::Add;
 /// Coordinates in the game world, relative to the nearest layer origin.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Position {
-    x: i16,
-    y: i16,
+    pub x: i16,
+    pub y: i16,
 }
 
 impl Position {
@@ -47,12 +45,16 @@ impl std::fmt::Display for Position {
 pub enum TileType {
     Debug,
     Wall,
-    Grass,
+    GrassFloor,
     Pengu,
     Door,
     Chest,
     Coin,
     Cat,
+    StoneFloor,
+    Bush,
+    Stones,
+    Pond,
 }
 
 impl Default for TileType {
@@ -102,6 +104,6 @@ impl From<Brightness> for u8 {
 
 impl From<Brightness> for Color {
     fn from(val: Brightness) -> Self {
-        Self([val.into(), val.into(), val.into(), 255])
+        Self([255, 255, 255, val.into()])
     }
 }

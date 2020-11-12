@@ -147,7 +147,7 @@ impl Generator {
     pub fn generate_layer_tiles(&self, x_offset: f32, y_offset: f32) -> Vec<Vec<Tile>> {
         let noise = NoiseBuilder::gradient_2d_offset(x_offset, 64, y_offset, 64)
             .with_seed(self.seed)
-            .with_freq(0.015)
+            .with_freq(0.045)
             .generate_scaled(0.0, 255.0);
 
         let tile = Tile {
@@ -162,8 +162,8 @@ impl Generator {
                 tiles[y][x].position = (x as i16, y as i16).into();
                 let number = *noise.get(y * 64 + x).unwrap() as u8;
                 tiles[y][x].tile_type = match number {
-                    0..=127 => TileType::Grass,
-                    128..=255 => TileType::Wall,
+                    0..=209 => TileType::GrassFloor,
+                    210..=255 => TileType::StoneFloor,
                 }
             }
         }
@@ -174,7 +174,7 @@ impl Generator {
     pub fn generate_entities(&self, x_offset: f32, y_offset: f32) -> Vec<Entity> {
         let noise = NoiseBuilder::gradient_2d_offset(x_offset, 64, y_offset, 64)
             .with_seed(self.seed)
-            .with_freq(0.2)
+            .with_freq(0.4)
             .generate_scaled(0.0, 255.0);
 
         let entity_base = Entity {
@@ -189,7 +189,25 @@ impl Generator {
             for x in 0..LAYER_DIMENSIONS.into() {
                 let number = *noise.get(y * 64 + x).unwrap() as u8;
                 match number {
-                    240..=255 => {
+                    220..=222 => {
+                        let mut entity = entity_base.clone();
+                        entity.set_tile(TileType::Pond);
+                        entity.set_local_position((x as i16, y as i16).into());
+                        entities.push(entity);
+                    }
+                    223..=244 => {
+                        let mut entity = entity_base.clone();
+                        entity.set_tile(TileType::Stones);
+                        entity.set_local_position((x as i16, y as i16).into());
+                        entities.push(entity);
+                    }
+                    245..=252 => {
+                        let mut entity = entity_base.clone();
+                        entity.set_tile(TileType::Bush);
+                        entity.set_local_position((x as i16, y as i16).into());
+                        entities.push(entity);
+                    }
+                    253..=255 => {
                         let mut entity = entity_base.clone();
                         entity.set_tile(TileType::Coin);
                         entity.set_local_position((x as i16, y as i16).into());

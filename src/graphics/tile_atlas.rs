@@ -1,7 +1,7 @@
 use macroquad::{draw_texture_ex, load_texture, Color, DrawTextureParams, Rect, Texture2D, Vec2};
 
 use crate::graphics::layer::Layer;
-use crate::graphics::tile::{Brightness, Tile, TileType};
+use crate::graphics::tile::{Brightness, TileType};
 
 use crate::entities::entities::{distance, Entity};
 use crate::entities::player::Player;
@@ -30,19 +30,6 @@ impl TileAtlas {
             tile_width: 32.,
             tile_height: 32.,
         }
-    }
-
-    /// Draws the provided `&Tile`.
-    pub fn draw_tile(&self, tile: &Tile, brightness: Brightness) {
-        let params = self.get_texture_params(tile.tile_type);
-        let (x, y) = tile.position.into();
-        draw_texture_ex(
-            self.texture,
-            f32::from(x) + 1.,
-            f32::from(y),
-            Color::from(brightness),
-            params,
-        );
     }
 
     /// Draws the provided `&Entity`.
@@ -104,12 +91,16 @@ impl TileAtlas {
         match tile_type {
             TileType::Debug => (0., 0.),
             TileType::Wall => (1., 0.),
-            TileType::Grass => (2., 0.),
+            TileType::GrassFloor => (2., 0.),
             TileType::Pengu => (3., 0.),
             TileType::Door => (0., 1.),
             TileType::Chest => (1., 1.),
             TileType::Coin => (2., 1.),
             TileType::Cat => (3., 1.),
+            TileType::StoneFloor => (0., 2.),
+            TileType::Bush => (1., 2.),
+            TileType::Stones => (2., 2.),
+            TileType::Pond => (3., 2.),
         }
     }
 }

@@ -1,5 +1,6 @@
 use crate::entities::entities::Entity;
-use crate::graphics::tile::{Brightness, TileType};
+use crate::graphics::tile::{Brightness, Position, TileType};
+use crate::world::WorldPosition;
 
 #[derive(Debug, Clone)]
 pub struct Player {
@@ -13,8 +14,20 @@ impl Player {
         if distance > self.vision_range.into() {
             Brightness::from(0)
         } else {
-            Brightness::from((255. - 255. / (f32::from(self.vision_range) / distance)) as u8)
+            Brightness::from((255. - 255. / (f32::from(self.vision_range + 5) / distance)) as u8)
         }
+    }
+
+    pub fn calc_future_pos(&self) -> (WorldPosition, Position) {
+        let (x, y) = self.entity.pos.into();
+        let (dest_x, dest_y) = self.destination.as_tuple();
+        Entity::get_checked_position(
+            self.entity.world_pos,
+            Position {
+                x: x + dest_x,
+                y: y + dest_y,
+            },
+        )
     }
 }
 
