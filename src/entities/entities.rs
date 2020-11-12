@@ -25,9 +25,7 @@ impl Entities {
     pub fn update(&mut self, world: &World, generator: &Generator) {
         let active_locations = &world.positions_of_layers_in_view;
         for active_location in active_locations.iter() {
-            if self.loaded_locations.contains(active_location) {
-                // Update
-            } else {
+            if !self.loaded_locations.contains(active_location) {
                 self.load_entities_at_location(active_location, generator);
             }
         }
@@ -44,19 +42,31 @@ impl Entities {
         }
         if !self.player.destination.is_zero() {
             let future_pos = self.player.calc_future_pos();
-            if !self
+            let collider = self
                 .entities
-                .iter()
-                .find(|&e| e.pos == future_pos.1 && e.world_pos == future_pos.0)
-                .and_then(Entity::is_blocking)
-                .unwrap_or_else(|| false)
-            {
+                .iter_mut()
+                .find(|e| e.pos == future_pos.1 && e.world_pos == future_pos.0);
+
+            let allowed_to_move = match collider {
+                Some(collider) => {
+                    if !Entity::is_blocking(&collider).unwrap() {
+                        collider.collide(&mut self.player);
+                        true
+                    } else {
+                        false
+                    }
+                }
+                None => true,
+            };
+
+            if allowed_to_move {
                 self.player
                     .entity
                     .add_to_local_position(self.player.destination.as_tuple().into());
             }
-
             self.player.destination.reset_destination();
+
+            self.clean_up();
         }
     }
 
@@ -109,6 +119,10 @@ impl Entities {
     fn load_entities(&mut self, mut entities: Vec<Entity>) {
         self.entities.extend(entities.drain(..));
     }
+
+    fn clean_up(&mut self) {
+        self.entities.retain(|e| !e.removed);
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -116,6 +130,7 @@ pub struct Entity {
     pub world_pos: WorldPosition,
     pub pos: Position,
     pub tile: TileType,
+    pub removed: bool,
 }
 
 impl Entity {
@@ -124,6 +139,7 @@ impl Entity {
             world_pos,
             pos,
             tile,
+            removed: false,
         }
     }
 
@@ -183,6 +199,15 @@ impl Entity {
         )
     }
 
+    pub fn collide(&mut self, player: &mut Player) {
+        if Entity::is_pickup(self).unwrap() {
+            self.removed = true;
+            if self.tile == TileType::Coin {
+                player.score += 1;
+            }
+        }
+    }
+
     pub const fn is_blocking(entity: &Entity) -> Option<bool> {
         match entity.tile {
             TileType::Debug => Some(false),
@@ -197,6 +222,23 @@ impl Entity {
             TileType::Bush => Some(true),
             TileType::Stones => Some(false),
             TileType::Pond => Some(true),
+        }
+    }
+
+    pub const fn is_pickup(entity: &Entity) -> Option<bool> {
+        match entity.tile {
+            TileType::Debug => Some(false),
+            TileType::Wall => Some(false),
+            TileType::GrassFloor => Some(false),
+            TileType::Pengu => Some(false),
+            TileType::Door => Some(false),
+            TileType::Chest => Some(true),
+            TileType::Coin => Some(true),
+            TileType::Cat => Some(false),
+            TileType::StoneFloor => Some(false),
+            TileType::Bush => Some(false),
+            TileType::Stones => Some(false),
+            TileType::Pond => Some(false),
         }
     }
 }

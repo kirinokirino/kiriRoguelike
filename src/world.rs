@@ -181,6 +181,7 @@ impl Generator {
             world_pos: (0, 0).into(),
             pos: (0, 0).into(),
             tile: TileType::Debug,
+            removed: false,
         };
 
         let mut entities = Vec::new();

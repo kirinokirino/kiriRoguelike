@@ -24,8 +24,8 @@
 )]
 
 use macroquad::{
-    clear_background, debug, draw_circle, is_key_pressed, is_mouse_button_down, next_frame,
-    set_camera, set_default_camera, warn, Camera2D, Color, KeyCode, MouseButton, Vec2,
+    clear_background, debug, draw_circle, draw_text, is_key_pressed, is_mouse_button_down,
+    next_frame, set_camera, set_default_camera, warn, Camera2D, Color, KeyCode, MouseButton, Vec2,
 };
 
 mod graphics;
@@ -56,7 +56,7 @@ async fn main() {
     let mut world = World::default();
     let mut generator = Generator::default();
     let mut entities = Entities::default();
-
+    let mut score: i64 = 0;
     // The infinite game loop.
     loop {
         // ===========Input===========
@@ -73,6 +73,7 @@ async fn main() {
         world.update(&player_pos, &generator);
         entities.update(&world, &generator);
         main_camera.set_target(entities.player.entity.get_absolute_position().into());
+        score = entities.player.score;
         // ===========Draw===========
         // Fill the canvas with white.
         clear_background(Color {
@@ -102,7 +103,13 @@ async fn main() {
 
         // --- Fixed screen space, render ui.
         set_default_camera();
-        //draw_ui();
+        draw_text(
+            format!("Collect coins! you have {}.", score).as_str(),
+            5.,
+            5.,
+            30.,
+            Color::new(40., 80., 170., 200.),
+        );
 
         next_frame().await
     }

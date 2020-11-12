@@ -7,6 +7,7 @@ pub struct Player {
     pub entity: Entity,
     pub destination: Destination,
     pub vision_range: i16,
+    pub score: i64,
 }
 
 impl Player {
@@ -39,6 +40,7 @@ impl Default for Player {
             entity,
             destination: Destination::default(),
             vision_range: 16,
+            score: 0,
         }
     }
 }
