@@ -1,6 +1,7 @@
+use crate::coords::{ChunkPosition, LocalPosition};
 use crate::entities::entities::Entity;
-use crate::graphics::tile::{Brightness, Position, TileType};
-use crate::world::WorldPosition;
+use crate::graphics::brightness::Brightness;
+use crate::tile_types::TileType;
 
 #[derive(Debug, Clone)]
 pub struct Player {
@@ -19,12 +20,12 @@ impl Player {
         }
     }
 
-    pub fn calc_future_pos(&self) -> (WorldPosition, Position) {
+    pub fn calc_future_pos(&self) -> (ChunkPosition, LocalPosition) {
         let (x, y) = self.entity.pos.into();
         let (dest_x, dest_y) = self.destination.as_tuple();
         Entity::get_checked_position(
             self.entity.world_pos,
-            Position {
+            LocalPosition {
                 x: x + dest_x,
                 y: y + dest_y,
             },

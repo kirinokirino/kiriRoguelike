@@ -1,22 +1,20 @@
-use crate::graphics::tile::{Position, TileType};
+use crate::coords::{ChunkPosition, LocalPosition, CHUNK_SIZE};
+use crate::tile_types::TileType;
 
-/// The width of the `Layer`.
-pub const LAYER_DIMENSIONS: u16 = 32;
-
-/// The struct of arrays for tiles of the background map.
+/// The background terrain for the chunk.
 #[derive(Debug)]
-pub struct Layer {
+pub struct ChunkTerrain {
     pub origin: (i64, i64),
 
-    positions: Vec<Vec<Position>>,
+    positions: Vec<Vec<LocalPosition>>,
     tile_types: Vec<Vec<TileType>>,
 }
 
-impl Layer {
+impl ChunkTerrain {
     pub fn new(
         origin: (i64, i64),
         tile_types: Vec<Vec<(TileType)>>,
-        positions: Vec<Vec<(Position)>>,
+        positions: Vec<Vec<(LocalPosition)>>,
     ) -> Self {
         Self {
             origin,
@@ -24,7 +22,7 @@ impl Layer {
             tile_types,
         }
     }
-    pub fn get_tile(&self, pos: &Position) -> &TileType {
+    pub fn get_tile(&self, pos: &LocalPosition) -> &TileType {
         self.tile_types
             .get(pos.y as usize)
             .expect("Tried to get a tile outside the layer!")
@@ -33,8 +31,8 @@ impl Layer {
     }
 }
 
-impl<'a> IntoIterator for &'a Layer {
-    type Item = (TileType, Position);
+impl<'a> IntoIterator for &'a ChunkTerrain {
+    type Item = (TileType, LocalPosition);
     type IntoIter = LayerIterator<'a>;
     fn into_iter(self) -> Self::IntoIter {
         LayerIterator {
@@ -48,19 +46,19 @@ impl<'a> IntoIterator for &'a Layer {
 /// Iterator for the layer. Iterates on the corresponding `TileType`, `Position` and `Brightness`.
 pub struct LayerIterator<'a> {
     tile_types: &'a Vec<Vec<TileType>>,
-    positions: &'a Vec<Vec<Position>>,
+    positions: &'a Vec<Vec<LocalPosition>>,
     index: usize,
 }
 
 impl<'a> Iterator for LayerIterator<'a> {
-    type Item = (TileType, Position);
+    type Item = (TileType, LocalPosition);
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index >= (LAYER_DIMENSIONS * LAYER_DIMENSIONS).into() {
+        if self.index >= (CHUNK_SIZE * CHUNK_SIZE).into() {
             None
         } else {
             let (x, y) = (
-                self.index / usize::from(LAYER_DIMENSIONS),
-                self.index % usize::from(LAYER_DIMENSIONS),
+                self.index / usize::from(CHUNK_SIZE),
+                self.index % usize::from(CHUNK_SIZE),
             );
 
             let tile_type = self.tile_types[x][y];

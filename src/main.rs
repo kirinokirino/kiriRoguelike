@@ -29,12 +29,15 @@ use macroquad::{
 };
 
 mod graphics;
-use graphics::layer::LAYER_DIMENSIONS;
-use graphics::tile::Position;
 use graphics::tile_atlas::TileAtlas;
 
+mod tile_types;
+
+mod coords;
+use coords::{ChunkPosition, LocalPosition, CHUNK_SIZE};
+
 mod world;
-use world::{World, WorldPosition};
+use world::World;
 
 mod generator;
 use generator::Generator;
@@ -152,12 +155,12 @@ fn handle_keyboard(camera: &mut Camera) -> (i8, i8) {
 fn handle_mouse(
     left_mouse_pressed: bool,
     mouse_position: Vec2,
-) -> (bool, Option<(WorldPosition, Position)>) {
+) -> (bool, Option<(ChunkPosition, LocalPosition)>) {
     if is_mouse_button_down(MouseButton::Left) {
         let (mut mouse_x, mut mouse_y) = (mouse_position.x(), mouse_position.y());
         mouse_x = mouse_x.floor();
         mouse_y = mouse_y.floor();
-        let layer = f32::from(LAYER_DIMENSIONS);
+        let layer = f32::from(CHUNK_SIZE);
         let (world_x, world_y) = ((mouse_x / layer).floor(), (mouse_y / layer).floor());
 
         if mouse_x < 0.0 {
@@ -177,11 +180,11 @@ fn handle_mouse(
                 y = y
             );
             let (world_pos, pos) = Entity::get_checked_position(
-                WorldPosition {
+                ChunkPosition {
                     x: world_x as i32,
                     y: world_y as i32,
                 },
-                Position {
+                LocalPosition {
                     x: (x + 1.) as i16,
                     y: y as i16,
                 },

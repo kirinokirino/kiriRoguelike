@@ -1,10 +1,11 @@
 use macroquad::{draw_texture_ex, load_texture, Color, DrawTextureParams, Rect, Texture2D, Vec2};
 
-use crate::graphics::layer::Layer;
-use crate::graphics::tile::{Brightness, TileType};
-
 use crate::entities::entities::{distance, Entity};
 use crate::entities::player::Player;
+use crate::graphics::brightness::Brightness;
+use crate::graphics::chunk_terrain::ChunkTerrain;
+use crate::tile_types::TileType;
+
 /// Is used to split one `Texture2D` into different tiles.
 #[derive(Clone, Debug)]
 pub struct TileAtlas {
@@ -46,7 +47,7 @@ impl TileAtlas {
     }
 
     /// Draws every tile from the provided `&Layer`.
-    pub fn draw_layer(&self, layer: &Layer, player: &Player) {
+    pub fn draw_layer(&self, layer: &ChunkTerrain, player: &Player) {
         for (tile_type, position) in layer {
             let (relative_x, relative_y) = position.into();
             let (x, y) = (

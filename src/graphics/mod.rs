@@ -1,3 +1,3 @@
-pub mod layer;
-pub mod tile;
+pub mod brightness;
+pub mod chunk_terrain;
 pub mod tile_atlas;

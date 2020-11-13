@@ -1,7 +1,6 @@
-use crate::graphics::layer::LAYER_DIMENSIONS;
-use crate::graphics::tile::{Position, TileType};
-
+use crate::coords::{LocalPosition, CHUNK_SIZE};
 use crate::entities::entities::Entity;
+use crate::tile_types::TileType;
 
 use simdnoise::NoiseBuilder;
 
@@ -15,22 +14,22 @@ impl Generator {
         Self { seed }
     }
 
-    pub fn generate_layer_tiles(
+    pub fn generate_chunk_terrain(
         &self,
         x_offset: f32,
         y_offset: f32,
-    ) -> (Vec<Vec<Position>>, Vec<Vec<TileType>>) {
+    ) -> (Vec<Vec<LocalPosition>>, Vec<Vec<TileType>>) {
         let noise = NoiseBuilder::gradient_2d_offset(x_offset, 64, y_offset, 64)
             .with_seed(self.seed)
             .with_freq(0.045)
             .generate_scaled(0.0, 255.0);
 
-        let mut positions: Vec<Vec<Position>> = Vec::with_capacity(LAYER_DIMENSIONS.into());
-        let mut tile_types: Vec<Vec<TileType>> = Vec::with_capacity(LAYER_DIMENSIONS.into());
-        for y in 0..LAYER_DIMENSIONS.into() {
-            let mut tiles_row: Vec<TileType> = Vec::with_capacity(LAYER_DIMENSIONS.into());
-            let mut positions_row: Vec<Position> = Vec::with_capacity(LAYER_DIMENSIONS.into());
-            for x in 0..LAYER_DIMENSIONS.into() {
+        let mut positions: Vec<Vec<LocalPosition>> = Vec::with_capacity(CHUNK_SIZE.into());
+        let mut tile_types: Vec<Vec<TileType>> = Vec::with_capacity(CHUNK_SIZE.into());
+        for y in 0..CHUNK_SIZE.into() {
+            let mut tiles_row: Vec<TileType> = Vec::with_capacity(CHUNK_SIZE.into());
+            let mut positions_row: Vec<LocalPosition> = Vec::with_capacity(CHUNK_SIZE.into());
+            for x in 0..CHUNK_SIZE.into() {
                 positions_row.push((x as i16, y as i16).into());
                 let number = *noise.get(y * 64 + x).unwrap() as u8;
                 let tile_type = match number {
@@ -60,8 +59,8 @@ impl Generator {
 
         let mut entities = Vec::new();
 
-        for y in 0..LAYER_DIMENSIONS.into() {
-            for x in 0..LAYER_DIMENSIONS.into() {
+        for y in 0..CHUNK_SIZE.into() {
+            for x in 0..CHUNK_SIZE.into() {
                 let number = *noise.get(y * 64 + x).unwrap() as u8;
                 match number {
                     220..=222 => {
