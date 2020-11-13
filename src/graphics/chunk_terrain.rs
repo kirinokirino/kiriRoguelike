@@ -1,4 +1,4 @@
-use crate::coords::{ChunkPosition, LocalPosition, CHUNK_SIZE};
+use crate::coords::{LocalPosition, CHUNK_SIZE};
 use crate::tile_types::TileType;
 
 /// The background terrain for the chunk.
@@ -13,8 +13,8 @@ pub struct ChunkTerrain {
 impl ChunkTerrain {
     pub fn new(
         origin: (i64, i64),
-        tile_types: Vec<Vec<(TileType)>>,
-        positions: Vec<Vec<(LocalPosition)>>,
+        tile_types: Vec<Vec<TileType>>,
+        positions: Vec<Vec<LocalPosition>>,
     ) -> Self {
         Self {
             origin,

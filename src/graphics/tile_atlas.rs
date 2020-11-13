@@ -16,7 +16,7 @@ pub struct TileAtlas {
 
 impl TileAtlas {
     /// Initialize the atlas from the texture and tile size.
-    pub const fn new(texture: Texture2D, tile_width: f32, tile_height: f32) -> Self {
+    pub const fn _new(texture: Texture2D, tile_width: f32, tile_height: f32) -> Self {
         Self {
             texture,
             tile_width,
@@ -49,10 +49,9 @@ impl TileAtlas {
     /// Draws every tile from the provided `&Layer`.
     pub fn draw_layer(&self, layer: &ChunkTerrain, player: &Player) {
         for (tile_type, position) in layer {
-            let (relative_x, relative_y) = position.into();
             let (x, y) = (
-                (layer.origin.0 + i64::from(relative_x)) as f32,
-                (layer.origin.1 + i64::from(relative_y)) as f32,
+                (layer.origin.0 + i64::from(position.x)) as f32,
+                (layer.origin.1 + i64::from(position.y)) as f32,
             );
 
             let dist = distance(player.entity.get_absolute_position(), (x, y));

@@ -1,5 +1,4 @@
 use crate::coords::{ChunkPosition, LocalPosition, CHUNK_SIZE};
-use crate::entities::entities::Entity;
 use crate::entities::player::Player;
 use crate::graphics::chunk_terrain::ChunkTerrain;
 use crate::graphics::tile_atlas::TileAtlas;
@@ -57,12 +56,12 @@ impl World {
             .collect()
     }
 
-    fn get_layer(&self, world_pos: &ChunkPosition) -> Option<&ChunkTerrain> {
-        self.layers.get(world_pos)
+    fn get_layer(&self, chunk_pos: &ChunkPosition) -> Option<&ChunkTerrain> {
+        self.layers.get(chunk_pos)
     }
 
-    pub fn get_tile(&self, world_pos: &ChunkPosition, pos: &LocalPosition) -> Option<&TileType> {
-        self.get_layer(world_pos)
+    pub fn get_tile(&self, chunk_pos: &ChunkPosition, pos: &LocalPosition) -> Option<&TileType> {
+        self.get_layer(chunk_pos)
             .and_then(|layer| Some(layer.get_tile(pos)))
     }
 

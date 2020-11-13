@@ -21,10 +21,10 @@ impl Player {
     }
 
     pub fn calc_future_pos(&self) -> (ChunkPosition, LocalPosition) {
-        let (x, y) = self.entity.pos.into();
+        let LocalPosition { x, y } = self.entity.pos;
         let (dest_x, dest_y) = self.destination.as_tuple();
         Entity::get_checked_position(
-            self.entity.world_pos,
+            self.entity.chunk_pos,
             LocalPosition {
                 x: x + dest_x,
                 y: y + dest_y,

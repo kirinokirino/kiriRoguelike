@@ -1,5 +1,3 @@
-use macroquad::Color;
-
 /// Available tiles.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum TileType {

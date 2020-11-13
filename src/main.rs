@@ -73,15 +73,15 @@ async fn main() {
         let mouse_position = mouse_position_relative_to(&main_camera);
         let (new_left_mouse, cursor) = handle_mouse(left_mouse_pressed, mouse_position);
         left_mouse_pressed = new_left_mouse;
-        if let Some((world_pos, pos)) = cursor {
-            println!("Terrain: {}", world.get_tile(&world_pos, &pos).unwrap());
-            if let Some(entity) = entities.get_mut_entity_at_pos(&world_pos, &pos) {
+        if let Some((chunk_pos, pos)) = cursor {
+            println!("Terrain: {}", world.get_tile(&chunk_pos, &pos).unwrap());
+            if let Some(entity) = entities.get_mut_entity_at_pos(&chunk_pos, &pos) {
                 println!("{}", entity);
             }
-            //entities.add_entity(&world_pos, &pos);
+            //entities.add_entity(&chunk_pos, &pos);
         }
         entities.input(handle_keyboard(&mut main_camera));
-        let player_pos = entities.player.entity.world_pos.clone();
+        let player_pos = entities.player.entity.chunk_pos.clone();
         // ===========Update===========
         // Checks for input related to camera and changes it accordingly.
 
@@ -179,7 +179,7 @@ fn handle_mouse(
                 world_y = world_y,
                 y = y
             );
-            let (world_pos, pos) = Entity::get_checked_position(
+            let (chunk_pos, pos) = Entity::get_checked_position(
                 ChunkPosition {
                     x: world_x as i32,
                     y: world_y as i32,
@@ -189,7 +189,7 @@ fn handle_mouse(
                     y: y as i16,
                 },
             );
-            return (true, Some((world_pos, pos)));
+            return (true, Some((chunk_pos, pos)));
         }
         return (true, None);
     }

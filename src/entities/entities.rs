@@ -46,7 +46,7 @@ impl Entities {
             let collider = self
                 .entities
                 .iter_mut()
-                .find(|e| e.pos == future_pos.1 && e.world_pos == future_pos.0);
+                .find(|e| e.pos == future_pos.1 && e.chunk_pos == future_pos.0);
 
             let allowed_to_move = match collider {
                 Some(collider) => {
@@ -83,20 +83,19 @@ impl Entities {
     }
 
     fn populate_location(&mut self, location: ChunkPosition, generator: &Generator) {
-        let (x, y) = location.into();
-        let scaled_x = x * i32::from(CHUNK_SIZE);
-        let scaled_y = y * i32::from(CHUNK_SIZE);
+        let scaled_x = location.x * i32::from(CHUNK_SIZE);
+        let scaled_y = location.y * i32::from(CHUNK_SIZE);
         let entities = generator.generate_entities(scaled_x as f32, scaled_y as f32);
 
         for mut entity in entities {
-            entity.set_world_position(location.clone());
+            entity.set_chunk_position(location.clone());
             self.entities.push(entity);
         }
     }
 
-    pub fn add_entity(&mut self, world_pos: &ChunkPosition, pos: &LocalPosition) {
+    pub fn add_entity(&mut self, chunk_pos: &ChunkPosition, pos: &LocalPosition) {
         let mut entity = Entity::default();
-        entity.set_position((*world_pos, *pos));
+        entity.set_position((*chunk_pos, *pos));
         self.entities.push(entity);
     }
 
@@ -112,11 +111,11 @@ impl Entities {
     fn unload_entites_from_location(&mut self, location: &ChunkPosition) {
         let mut entities_to_store: Vec<Entity> = Vec::new();
         for entity in self.entities.iter() {
-            if entity.world_pos == *location {
+            if entity.chunk_pos == *location {
                 entities_to_store.push(entity.clone());
             }
         }
-        self.entities.retain(|e| e.world_pos != *location);
+        self.entities.retain(|e| e.chunk_pos != *location);
         self.entities_store.insert(*location, entities_to_store);
         self.loaded_locations.retain(|e| e != location);
     }
@@ -131,27 +130,36 @@ impl Entities {
 
     pub fn get_mut_entity_at_pos(
         &mut self,
-        world_pos: &ChunkPosition,
+        chunk_pos: &ChunkPosition,
         pos: &LocalPosition,
     ) -> Option<&mut Entity> {
         self.entities
             .iter_mut()
-            .find(|e| e.pos == *pos && e.world_pos == *world_pos)
+            .find(|e| e.pos == *pos && e.chunk_pos == *chunk_pos)
     }
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct Entity {
-    pub world_pos: ChunkPosition,
+    pub chunk_pos: ChunkPosition,
     pub pos: LocalPosition,
     pub tile: TileType,
     pub removed: bool,
 }
 
 impl Entity {
-    fn new(world_pos: ChunkPosition, pos: LocalPosition, tile: TileType) -> Self {
+    fn new(chunk_pos: ChunkPosition, pos: LocalPosition, tile: TileType) -> Self {
         Self {
-            world_pos,
+            chunk_pos,
+            pos,
+            tile,
+            removed: false,
+        }
+    }
+
+    pub fn new_local(pos: LocalPosition, tile: TileType) -> Self {
+        Self {
+            chunk_pos: ChunkPosition::default(),
             pos,
             tile,
             removed: false,
@@ -168,16 +176,19 @@ impl Entity {
 
     pub fn add_to_local_position(&mut self, to_add: (i16, i16)) {
         self.pos.add_tuple(to_add);
-        self.set_position(Self::get_checked_position(self.world_pos, self.pos));
+        self.set_position(Self::get_checked_position(self.chunk_pos, self.pos));
     }
 
     pub fn get_checked_position(
-        world_pos: ChunkPosition,
+        chunk_pos: ChunkPosition,
         pos: LocalPosition,
     ) -> (ChunkPosition, LocalPosition) {
         let dimensions = CHUNK_SIZE as i16;
-        let (mut x, mut y) = pos.into();
-        let (mut world_x, mut world_y) = world_pos.into();
+        let LocalPosition { mut x, mut y } = pos;
+        let ChunkPosition {
+            x: mut world_x,
+            y: mut world_y,
+        } = chunk_pos;
         if x >= dimensions {
             world_x += 1;
             x -= dimensions
@@ -195,21 +206,24 @@ impl Entity {
         (ChunkPosition::new(world_x, world_y), LocalPosition { x, y })
     }
 
-    pub fn set_world_position(&mut self, world_pos: ChunkPosition) {
-        self.world_pos = world_pos;
+    pub fn set_chunk_position(&mut self, chunk_pos: ChunkPosition) {
+        self.chunk_pos = chunk_pos;
     }
 
     pub fn set_position(&mut self, pos: (ChunkPosition, LocalPosition)) {
-        self.set_world_position(pos.0);
+        self.set_chunk_position(pos.0);
         self.set_local_position(pos.1);
     }
 
     pub fn get_absolute_position(&self) -> (f32, f32) {
-        let (local_x, local_y) = self.pos.into();
-        let (world_x, world_y) = self.world_pos.into();
+        let LocalPosition { x, y } = self.pos;
+        let ChunkPosition {
+            x: world_x,
+            y: world_y,
+        } = self.chunk_pos;
         (
-            ((world_x * i32::from(CHUNK_SIZE)) + i32::from(local_x)) as f32,
-            ((world_y * i32::from(CHUNK_SIZE)) + i32::from(local_y)) as f32,
+            ((world_x * i32::from(CHUNK_SIZE)) + i32::from(x)) as f32,
+            ((world_y * i32::from(CHUNK_SIZE)) + i32::from(y)) as f32,
         )
     }
 
