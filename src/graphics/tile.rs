@@ -69,23 +69,6 @@ impl std::fmt::Display for TileType {
     }
 }
 
-/// Tile is the visual component of game world entities.
-#[derive(Debug, Clone, Default)]
-pub struct Tile {
-    pub tile_type: TileType,
-    pub position: Position,
-}
-
-impl Tile {
-    /// Creates a new Tile with maximum brightness.
-    pub fn new(tile_type: TileType, position: Position) -> Self {
-        Self {
-            tile_type,
-            position,
-        }
-    }
-}
-
 /// A newtype for the brightness level, max is 255.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Brightness(u8);

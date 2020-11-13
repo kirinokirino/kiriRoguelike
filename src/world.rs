@@ -1,13 +1,12 @@
 use crate::graphics::layer::{Layer, LAYER_DIMENSIONS};
-use crate::graphics::tile::{Position, Tile, TileType};
+use crate::graphics::tile::{Position, TileType};
 use crate::graphics::tile_atlas::TileAtlas;
 
 use crate::entities::entities::Entity;
 use crate::entities::player::Player;
 
+use crate::generator::Generator;
 use std::collections::HashMap;
-
-use simdnoise::NoiseBuilder;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Default)]
 pub struct WorldPosition {
@@ -78,8 +77,8 @@ impl World {
 
     /// Utility function to create a new `Layer`
     fn new_layer(gen: &Generator, origin: (i64, i64)) -> Layer {
-        let tiles = gen.generate_layer_tiles(origin.0 as f32, origin.1 as f32);
-        Layer::new(origin, &tiles)
+        let (positions, tile_types) = gen.generate_layer_tiles(origin.0 as f32, origin.1 as f32);
+        Layer::new(origin, tile_types, positions)
     }
 
     /// Returns all the `Layers` that should be in view.
@@ -140,94 +139,5 @@ impl Default for World {
             positions_of_layers_in_view,
             layers,
         }
-    }
-}
-
-#[derive(Default)]
-pub struct Generator {
-    seed: i32,
-}
-
-impl Generator {
-    pub fn new(seed: i32) -> Self {
-        Self { seed }
-    }
-
-    pub fn generate_layer_tiles(&self, x_offset: f32, y_offset: f32) -> Vec<Vec<Tile>> {
-        let noise = NoiseBuilder::gradient_2d_offset(x_offset, 64, y_offset, 64)
-            .with_seed(self.seed)
-            .with_freq(0.045)
-            .generate_scaled(0.0, 255.0);
-
-        let tile = Tile {
-            tile_type: TileType::Debug,
-            position: (0, 0).into(),
-        };
-
-        let mut tiles = vec![vec![tile.clone(); LAYER_DIMENSIONS.into()]; LAYER_DIMENSIONS.into()];
-
-        for y in 0..LAYER_DIMENSIONS.into() {
-            for x in 0..LAYER_DIMENSIONS.into() {
-                tiles[y][x].position = (x as i16, y as i16).into();
-                let number = *noise.get(y * 64 + x).unwrap() as u8;
-                tiles[y][x].tile_type = match number {
-                    0..=209 => TileType::GrassFloor,
-                    210..=255 => TileType::StoneFloor,
-                }
-            }
-        }
-
-        tiles
-    }
-
-    pub fn generate_entities(&self, x_offset: f32, y_offset: f32) -> Vec<Entity> {
-        let noise = NoiseBuilder::gradient_2d_offset(x_offset, 64, y_offset, 64)
-            .with_seed(self.seed)
-            .with_freq(0.4)
-            .generate_scaled(0.0, 255.0);
-
-        let entity_base = Entity {
-            world_pos: (0, 0).into(),
-            pos: (0, 0).into(),
-            tile: TileType::Debug,
-            removed: false,
-        };
-
-        let mut entities = Vec::new();
-
-        for y in 0..LAYER_DIMENSIONS.into() {
-            for x in 0..LAYER_DIMENSIONS.into() {
-                let number = *noise.get(y * 64 + x).unwrap() as u8;
-                match number {
-                    220..=222 => {
-                        let mut entity = entity_base.clone();
-                        entity.set_tile(TileType::Pond);
-                        entity.set_local_position((x as i16, y as i16).into());
-                        entities.push(entity);
-                    }
-                    223..=244 => {
-                        let mut entity = entity_base.clone();
-                        entity.set_tile(TileType::Stones);
-                        entity.set_local_position((x as i16, y as i16).into());
-                        entities.push(entity);
-                    }
-                    245..=252 => {
-                        let mut entity = entity_base.clone();
-                        entity.set_tile(TileType::Bush);
-                        entity.set_local_position((x as i16, y as i16).into());
-                        entities.push(entity);
-                    }
-                    253..=255 => {
-                        let mut entity = entity_base.clone();
-                        entity.set_tile(TileType::Coin);
-                        entity.set_local_position((x as i16, y as i16).into());
-                        entities.push(entity);
-                    }
-                    _ => {}
-                }
-            }
-        }
-
-        entities
     }
 }

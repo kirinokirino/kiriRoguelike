@@ -1,4 +1,4 @@
-use crate::graphics::tile::{Position, Tile, TileType};
+use crate::graphics::tile::{Position, TileType};
 
 /// The width of the `Layer`.
 pub const LAYER_DIMENSIONS: u16 = 32;
@@ -8,35 +8,20 @@ pub const LAYER_DIMENSIONS: u16 = 32;
 pub struct Layer {
     pub origin: (i64, i64),
 
-    tile_types: Vec<Vec<TileType>>,
     positions: Vec<Vec<Position>>,
+    tile_types: Vec<Vec<TileType>>,
 }
 
 impl Layer {
-    pub fn new(origin: (i64, i64), tiles: &[Vec<Tile>]) -> Self {
-        debug_assert!(
-            tiles.len() + 1 != LAYER_DIMENSIONS.into(),
-            "Unable to create the layer! Incorrect width"
-        );
-        debug_assert!(
-            tiles.get(0).unwrap().len() + 1 != LAYER_DIMENSIONS.into(),
-            "Unable to create the layer! Incorrect height"
-        );
-
-        let mut tile_types: Vec<Vec<TileType>> =
-            vec![vec![TileType::Debug; LAYER_DIMENSIONS.into()]; LAYER_DIMENSIONS.into()];
-        let mut positions: Vec<Vec<Position>> =
-            vec![vec![(0, 0).into(); LAYER_DIMENSIONS.into()]; LAYER_DIMENSIONS.into()];
-        for (x, row) in tiles.iter().enumerate() {
-            for (y, tile) in row.iter().enumerate() {
-                tile_types[x][y] = tile.tile_type;
-                positions[x][y] = tile.position;
-            }
-        }
+    pub fn new(
+        origin: (i64, i64),
+        tile_types: Vec<Vec<(TileType)>>,
+        positions: Vec<Vec<(Position)>>,
+    ) -> Self {
         Self {
             origin,
-            tile_types,
             positions,
+            tile_types,
         }
     }
     pub fn get_tile(&self, pos: &Position) -> &TileType {

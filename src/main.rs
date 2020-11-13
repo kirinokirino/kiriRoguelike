@@ -34,7 +34,10 @@ use graphics::tile::Position;
 use graphics::tile_atlas::TileAtlas;
 
 mod world;
-use world::{Generator, World, WorldPosition};
+use world::{World, WorldPosition};
+
+mod generator;
+use generator::Generator;
 
 mod entities;
 use entities::entities::{Entities, Entity};
@@ -167,8 +170,11 @@ fn handle_mouse(
         if !left_mouse_pressed {
             let (x, y) = (mouse_x.abs() % layer, mouse_y.abs() % layer);
             debug!(
-                "Mouse click x:{:.0}|{:.1} , y:{:.0}|{:.1}",
-                world_x, x, world_y, y
+                "World {world_x:.0}:{world_y:.0} | Position {x:.0}:{y:.0}",
+                world_x = world_x,
+                x = x,
+                world_y = world_y,
+                y = y
             );
             let (world_pos, pos) = Entity::get_checked_position(
                 WorldPosition {

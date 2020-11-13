@@ -1,7 +1,8 @@
+use crate::generator::Generator;
 use crate::graphics::layer::LAYER_DIMENSIONS;
 use crate::graphics::tile::{Position, TileType};
 use crate::graphics::tile_atlas::TileAtlas;
-use crate::world::{Generator, World, WorldPosition};
+use crate::world::{World, WorldPosition};
 
 use crate::entities::player::Player;
 
