@@ -46,12 +46,12 @@ impl TileAtlas {
         );
     }
 
-    /// Draws every tile from the provided `&Layer`.
-    pub fn draw_layer(&self, layer: &ChunkTerrain, player: &Player) {
-        for (tile_type, position) in layer {
+    /// Draws every tile from the provided `&ChunkTerrain`.
+    pub fn draw_layer(&self, chunk: &ChunkTerrain, player: &Player) {
+        for (tile_type, local_pos) in chunk {
             let (x, y) = (
-                (layer.origin.0 + i64::from(position.x)) as f32,
-                (layer.origin.1 + i64::from(position.y)) as f32,
+                (chunk.origin.0 + i64::from(local_pos.x)) as f32,
+                (chunk.origin.1 + i64::from(local_pos.y)) as f32,
             );
 
             let dist = distance(player.entity.get_absolute_position(), (x, y));

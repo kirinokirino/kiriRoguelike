@@ -34,7 +34,7 @@ use graphics::tile_atlas::TileAtlas;
 mod tile_types;
 
 mod coords;
-use coords::{ChunkPosition, LocalPosition, CHUNK_SIZE};
+use coords::{AbsolutePosition, ChunkPosition, LocalPosition, CHUNK_SIZE};
 
 mod world;
 use world::World;
@@ -50,48 +50,68 @@ use camera::{mouse_position_relative_to, Camera};
 
 #[macroquad::main("kiriRoguelike")]
 async fn main() {
-    // Load assets.
+    // Load tile atlas from the default file.
     let tile_atlas = TileAtlas::default().await;
 
-    // We need to save the state of the mouse button
-    // to detect mouse clicks and not just "is pressed"
-    let mut left_mouse_pressed = false;
+    // Create the world, place that holds terrain.
+    let mut world = World::default();
+    // Create and seed the generator.
+    let generator = Generator::new(2);
+    // Create the container for all of the entities.
+    let mut entities = Entities::default();
+    // Just a number to show the score.
+    let mut score: i64;
 
     // Create main camera.
     let mut main_camera = Camera::default();
 
-    // Create the world!
-    let mut world = World::default();
-    let generator = Generator::new(2);
-    let mut entities = Entities::default();
-    let mut score: i64;
+    // We need to save the state of the mouse button
+    // to detect mouse clicks, as opposed to just "is pressed" state.
+    let mut left_mouse_pressed = false;
+
+    // The position of the tile we clicked.
+    let mut cursor = None;
 
     // The infinite game loop.
     loop {
         // ===========Input===========
-        // Get the mouse position inside the game world.
+        // Get the Vec2 position of the mouse inside the game world.
         let mouse_position = mouse_position_relative_to(&main_camera);
-        let (new_left_mouse, cursor) = handle_mouse(left_mouse_pressed, mouse_position);
-        left_mouse_pressed = new_left_mouse;
-        if let Some((chunk_pos, pos)) = cursor {
-            println!("Terrain: {}", world.get_tile(&chunk_pos, &pos).unwrap());
-            if let Some(entity) = entities.get_mut_entity_at_pos(&chunk_pos, &pos) {
+
+        // Select the clicked on tile and update the left mouse button state.
+        let (updated_left_mouse_pressed, updated_cursor) =
+            handle_mouse(left_mouse_pressed, mouse_position);
+        left_mouse_pressed = updated_left_mouse_pressed;
+        cursor = updated_cursor;
+
+        // Print the info about the tile we clicked.
+        if let Some(cursor) = cursor {
+            println!("Terrain: {}", world.get_tile(&cursor).unwrap());
+            if let Some(entity) = entities.get_mut_entity_at_pos(&cursor) {
                 println!("{}", entity);
             }
-            //entities.add_entity(&chunk_pos, &pos);
         }
-        entities.input(handle_keyboard(&mut main_camera));
-        let player_pos = entities.player.entity.chunk_pos.clone();
-        // ===========Update===========
-        // Checks for input related to camera and changes it accordingly.
 
-        // Update the world!
+        // Entities container handles player movement.
+        entities.input(handle_keyboard(&mut main_camera));
+        // ===========Update===========
+
+        // We need to know the player's chunk to see what chunks need to be
+        // loaded or unloaded.
+        let player_pos = entities.player.entity.chunk_pos.clone();
+        // Load or generate the chunks near the player.
         world.update(&player_pos, &generator);
+
+        // Load, generate or update all of the entities.
         entities.update(&world, &generator);
-        main_camera.set_target(entities.player.entity.get_absolute_position().into());
+        // We need to get the new score to show it on screen.
         score = entities.player.score;
+
+        // Point the camera to the new position of the player before the drawing stage.
+        main_camera.set_target(entities.player.entity.get_absolute_position().into());
+
         // ===========Draw===========
-        // Fill the canvas with white.
+        // Fill the canvas with the background color.
         clear_background(Color {
             0: [40, 40, 40, 255],
         });
@@ -104,12 +124,15 @@ async fn main() {
             ..macroquad::Camera2D::default()
         });
 
-        // Draw the world!
+        // We draw everything besides the ui in camera space.
+        // World needs to know the players location to know what terrain is visible
+        // and how far it is to make it less visible.
         let player = &entities.player;
         world.draw(&tile_atlas, &player);
+        // Entities container already knows about the player.
         entities.draw(&tile_atlas);
 
-        // Draw the mouse cursor.
+        // Draw the mouse cursor. As a small circle.
         draw_circle(
             mouse_position.x(),
             mouse_position.y(),
@@ -132,6 +155,7 @@ async fn main() {
 }
 
 /// Handle the input from the keyboard.
+/// Returns the direction for the player to set the destination to.
 fn handle_keyboard(camera: &mut Camera) -> (i8, i8) {
     camera.scroll(0.03, 0.97);
     let mut res = (0, 0);
@@ -152,26 +176,33 @@ fn handle_keyboard(camera: &mut Camera) -> (i8, i8) {
 }
 
 /// Handle the mouse. Print the coordinates where the mouse was clicked.
+/// Return the absolute position to be able to see what was clicked.
 fn handle_mouse(
     left_mouse_pressed: bool,
     mouse_position: Vec2,
-) -> (bool, Option<(ChunkPosition, LocalPosition)>) {
+) -> (bool, Option<AbsolutePosition>) {
     if is_mouse_button_down(MouseButton::Left) {
         let (mut mouse_x, mut mouse_y) = (mouse_position.x(), mouse_position.y());
         mouse_x = mouse_x.floor();
         mouse_y = mouse_y.floor();
-        let layer = f32::from(CHUNK_SIZE);
-        let (world_x, world_y) = ((mouse_x / layer).floor(), (mouse_y / layer).floor());
+        let chunk_dimensions = f32::from(CHUNK_SIZE);
+        let (world_x, world_y) = (
+            (mouse_x / chunk_dimensions).floor(),
+            (mouse_y / chunk_dimensions).floor(),
+        );
 
         if mouse_x < 0.0 {
-            mouse_x = layer - (-mouse_x % layer);
+            mouse_x = chunk_dimensions - (-mouse_x % chunk_dimensions);
         }
         if mouse_y < 0.0 {
-            mouse_y = layer - (-mouse_y % layer);
+            mouse_y = chunk_dimensions - (-mouse_y % chunk_dimensions);
         }
 
         if !left_mouse_pressed {
-            let (x, y) = (mouse_x.abs() % layer, mouse_y.abs() % layer);
+            let (x, y) = (
+                mouse_x.abs() % chunk_dimensions,
+                mouse_y.abs() % chunk_dimensions,
+            );
             debug!(
                 "World {world_x:.0}:{world_y:.0} | Position {x:.0}:{y:.0}",
                 world_x = world_x,
@@ -179,7 +210,7 @@ fn handle_mouse(
                 world_y = world_y,
                 y = y
             );
-            let (chunk_pos, pos) = Entity::get_checked_position(
+            let (chunk_pos, local_pos) = Entity::get_checked_position(
                 ChunkPosition {
                     x: world_x as i32,
                     y: world_y as i32,
@@ -189,7 +220,13 @@ fn handle_mouse(
                     y: y as i16,
                 },
             );
-            return (true, Some((chunk_pos, pos)));
+            return (
+                true,
+                Some(AbsolutePosition {
+                    chunk: chunk_pos,
+                    local: local_pos,
+                }),
+            );
         }
         return (true, None);
     }

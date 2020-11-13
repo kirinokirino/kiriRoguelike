@@ -1,4 +1,4 @@
-use crate::coords::{ChunkPosition, LocalPosition, CHUNK_SIZE};
+use crate::coords::{AbsolutePosition, ChunkPosition, LocalPosition, CHUNK_SIZE};
 use crate::entities::player::Player;
 use crate::generator::Generator;
 use crate::graphics::tile_atlas::TileAtlas;
@@ -128,14 +128,10 @@ impl Entities {
         self.entities.retain(|e| !e.removed);
     }
 
-    pub fn get_mut_entity_at_pos(
-        &mut self,
-        chunk_pos: &ChunkPosition,
-        pos: &LocalPosition,
-    ) -> Option<&mut Entity> {
+    pub fn get_mut_entity_at_pos(&mut self, position: &AbsolutePosition) -> Option<&mut Entity> {
         self.entities
             .iter_mut()
-            .find(|e| e.pos == *pos && e.chunk_pos == *chunk_pos)
+            .find(|e| e.pos == position.local && e.chunk_pos == position.chunk)
     }
 }
 

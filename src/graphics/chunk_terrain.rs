@@ -25,17 +25,17 @@ impl ChunkTerrain {
     pub fn get_tile(&self, pos: &LocalPosition) -> &TileType {
         self.tile_types
             .get(pos.y as usize)
-            .expect("Tried to get a tile outside the layer!")
+            .expect("Tried to get a tile outside the chunk!")
             .get(pos.x as usize)
-            .expect("Tried to get a tile outside the layer!")
+            .expect("Tried to get a tile outside the chunk!")
     }
 }
 
 impl<'a> IntoIterator for &'a ChunkTerrain {
     type Item = (TileType, LocalPosition);
-    type IntoIter = LayerIterator<'a>;
+    type IntoIter = ChunkIterator<'a>;
     fn into_iter(self) -> Self::IntoIter {
-        LayerIterator {
+        ChunkIterator {
             tile_types: &self.tile_types,
             positions: &self.positions,
             index: 0,
@@ -43,14 +43,14 @@ impl<'a> IntoIterator for &'a ChunkTerrain {
     }
 }
 
-/// Iterator for the layer. Iterates on the corresponding `TileType`, `Position` and `Brightness`.
-pub struct LayerIterator<'a> {
+/// Iterator for the chunk. Iterates on the corresponding `TileType`, `Position` and `Brightness`.
+pub struct ChunkIterator<'a> {
     tile_types: &'a Vec<Vec<TileType>>,
     positions: &'a Vec<Vec<LocalPosition>>,
     index: usize,
 }
 
-impl<'a> Iterator for LayerIterator<'a> {
+impl<'a> Iterator for ChunkIterator<'a> {
     type Item = (TileType, LocalPosition);
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= (CHUNK_SIZE * CHUNK_SIZE).into() {

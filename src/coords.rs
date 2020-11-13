@@ -44,4 +44,7 @@ impl ChunkPosition {
 }
 
 /// Holds both `ChunkPosition` and `LocalPosition`.
-pub struct AbsolutePosition {}
+pub struct AbsolutePosition {
+    pub chunk: ChunkPosition,
+    pub local: LocalPosition,
+}

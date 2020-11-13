@@ -1,4 +1,4 @@
-/// Available tiles.
+/// All the available tile types.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum TileType {
     Debug,
