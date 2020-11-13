@@ -23,7 +23,7 @@ impl Entities {
         self.player.destination.set_destination(dest.0, dest.1);
     }
     pub fn update(&mut self, world: &World, generator: &Generator) {
-        let active_locations = &world.positions_of_layers_in_view;
+        let active_locations = &world.positions_of_chunks_in_view;
         for active_location in active_locations.iter() {
             if !self.loaded_locations.contains(active_location) {
                 self.load_entities_at_location(active_location, generator);

@@ -9,20 +9,20 @@ use std::collections::HashMap;
 
 /// Handles most of the generating and drawing the terrain.
 pub struct World {
-    pub positions_of_layers_in_view: Vec<ChunkPosition>,
-    layers: HashMap<ChunkPosition, ChunkTerrain>,
+    pub positions_of_chunks_in_view: Vec<ChunkPosition>,
+    chunks: HashMap<ChunkPosition, ChunkTerrain>,
 }
 
 impl World {
-    /// Updates and possibly generates the layers that should be in view.
+    /// Updates and possibly generates the chunks that should be in view.
     pub fn update(&mut self, player_chunk: &ChunkPosition, generator: &Generator) {
         self.set_visible_layers(player_chunk, generator);
     }
 
     /// Draws every layer that is in view.
     pub fn draw(&self, tile_atlas: &TileAtlas, player: &Player) {
-        let layers = self.get_visible_chunks(player);
-        for layer in layers {
+        let chunks = self.get_visible_chunks(player);
+        for layer in chunks {
             tile_atlas.draw_layer(layer, player);
         }
     }
@@ -32,9 +32,9 @@ impl World {
     fn gen_layer(&mut self, pos: ChunkPosition, generator: &Generator) {
         let x = pos.x * i32::from(CHUNK_SIZE);
         let y = pos.y * i32::from(CHUNK_SIZE);
-        self.positions_of_layers_in_view.push(pos);
+        self.positions_of_chunks_in_view.push(pos);
         let origin = (i64::from(x), i64::from(y));
-        self.layers
+        self.chunks
             .insert(pos, Self::new_chunk_terrain(generator, origin));
     }
 
@@ -46,10 +46,10 @@ impl World {
 
     /// Returns all the `ChunkTerrain` structures that should be in view.
     fn get_visible_chunks(&self, player: &Player) -> Vec<&ChunkTerrain> {
-        self.positions_of_layers_in_view
+        self.positions_of_chunks_in_view
             .iter()
             .map(|p| {
-                self.layers
+                self.chunks
                     .get(p)
                     .expect("Tried to get layer that wasn't generated!")
             })
@@ -57,7 +57,7 @@ impl World {
     }
 
     fn get_layer(&self, chunk_pos: &ChunkPosition) -> Option<&ChunkTerrain> {
-        self.layers.get(chunk_pos)
+        self.chunks.get(chunk_pos)
     }
 
     pub fn get_tile(&self, chunk_pos: &ChunkPosition, pos: &LocalPosition) -> Option<&TileType> {
@@ -65,8 +65,8 @@ impl World {
             .and_then(|layer| Some(layer.get_tile(pos)))
     }
 
-    /// Updates layers in view to the square around the player position in the world,
-    /// generating new layers if necessary.
+    /// Updates chunks in view to the square around the player position in the world,
+    /// generating new chunks if necessary.
     fn set_visible_layers(&mut self, player_position: &ChunkPosition, generator: &Generator) {
         let needed_positions: Vec<ChunkPosition> = vec![
             ChunkPosition::new(player_position.x - 1, player_position.y - 1),
@@ -81,7 +81,7 @@ impl World {
         ];
         let mut to_generate: Vec<&ChunkPosition> = Vec::new();
         for pos in &needed_positions {
-            if !self.layers.contains_key(pos) {
+            if !self.chunks.contains_key(pos) {
                 to_generate.push(pos);
             }
         }
@@ -90,17 +90,17 @@ impl World {
             self.gen_layer(layer.clone(), generator);
         }
 
-        self.positions_of_layers_in_view = needed_positions;
+        self.positions_of_chunks_in_view = needed_positions;
     }
 }
 
 impl Default for World {
     fn default() -> Self {
         let positions_of_layers_in_view: Vec<ChunkPosition> = Vec::with_capacity(9);
-        let layers: HashMap<ChunkPosition, ChunkTerrain> = HashMap::new();
+        let chunks: HashMap<ChunkPosition, ChunkTerrain> = HashMap::new();
         Self {
-            positions_of_layers_in_view,
-            layers,
+            positions_of_chunks_in_view: positions_of_layers_in_view,
+            chunks,
         }
     }
 }
