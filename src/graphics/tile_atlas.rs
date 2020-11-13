@@ -50,7 +50,7 @@ impl TileAtlas {
         for (tile_type, position) in layer {
             let (relative_x, relative_y) = position.into();
             let (x, y) = (
-                (layer.origin.0 + i64::from(relative_x) + 1) as f32,
+                (layer.origin.0 + i64::from(relative_x)) as f32,
                 (layer.origin.1 + i64::from(relative_y)) as f32,
             );
 

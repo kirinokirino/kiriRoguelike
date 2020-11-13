@@ -1,5 +1,5 @@
 use crate::graphics::layer::{Layer, LAYER_DIMENSIONS};
-use crate::graphics::tile::{Tile, TileType};
+use crate::graphics::tile::{Position, Tile, TileType};
 use crate::graphics::tile_atlas::TileAtlas;
 
 use crate::entities::entities::Entity;
@@ -11,8 +11,8 @@ use simdnoise::NoiseBuilder;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Default)]
 pub struct WorldPosition {
-    x: i32,
-    y: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
 /// Sets the world position to a tuple without scaling.
@@ -60,7 +60,7 @@ impl World {
 
     /// Draws every layer that is in view.
     pub fn draw(&self, tile_atlas: &TileAtlas, player: &Player) {
-        let layers = self.get_visible_layers();
+        let layers = self.get_visible_layers(player);
         for layer in layers {
             tile_atlas.draw_layer(layer, player);
         }
@@ -83,7 +83,7 @@ impl World {
     }
 
     /// Returns all the `Layers` that should be in view.
-    fn get_visible_layers(&self) -> Vec<&Layer> {
+    fn get_visible_layers(&self, player: &Player) -> Vec<&Layer> {
         self.positions_of_layers_in_view
             .iter()
             .map(|p| {
@@ -92,6 +92,15 @@ impl World {
                     .expect("Tried to get layer that wasn't generated!")
             })
             .collect()
+    }
+
+    fn get_layer(&self, world_pos: &WorldPosition) -> Option<&Layer> {
+        self.layers.get(world_pos)
+    }
+
+    pub fn get_tile(&self, world_pos: &WorldPosition, pos: &Position) -> Option<&TileType> {
+        self.get_layer(world_pos)
+            .and_then(|layer| Some(layer.get_tile(pos)))
     }
 
     /// Updates layers in view to the square around the player position in the world,

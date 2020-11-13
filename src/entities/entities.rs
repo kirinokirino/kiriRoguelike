@@ -49,11 +49,11 @@ impl Entities {
 
             let allowed_to_move = match collider {
                 Some(collider) => {
-                    if !Entity::is_blocking(&collider).unwrap() {
+                    if Entity::is_blocking(&collider).unwrap() {
+                        false
+                    } else {
                         collider.collide(&mut self.player);
                         true
-                    } else {
-                        false
                     }
                 }
                 None => true,
@@ -87,12 +87,18 @@ impl Entities {
         let (x, y) = location.into();
         let scaled_x = x * i32::from(LAYER_DIMENSIONS);
         let scaled_y = y * i32::from(LAYER_DIMENSIONS);
-        let mut entities = generator.generate_entities(scaled_x as f32, scaled_y as f32);
+        let entities = generator.generate_entities(scaled_x as f32, scaled_y as f32);
 
         for mut entity in entities {
             entity.set_world_position(location.clone());
             self.entities.push(entity);
         }
+    }
+
+    pub fn add_entity(&mut self, world_pos: &WorldPosition, pos: &Position) {
+        let mut entity = Entity::default();
+        entity.set_position((*world_pos, *pos));
+        self.entities.push(entity);
     }
 
     fn load_entities_at_location(&mut self, location: &WorldPosition, generator: &Generator) {
@@ -122,6 +128,16 @@ impl Entities {
 
     fn clean_up(&mut self) {
         self.entities.retain(|e| !e.removed);
+    }
+
+    pub fn get_mut_entity_at_pos(
+        &mut self,
+        world_pos: &WorldPosition,
+        pos: &Position,
+    ) -> Option<&mut Entity> {
+        self.entities
+            .iter_mut()
+            .find(|e| e.pos == *pos && e.world_pos == *world_pos)
     }
 }
 
@@ -163,7 +179,6 @@ impl Entity {
         let dimensions = LAYER_DIMENSIONS as i16;
         let (mut x, mut y) = pos.into();
         let (mut world_x, mut world_y) = world_pos.into();
-        let mut has_change = false;
         if x >= dimensions {
             world_x += 1;
             x -= dimensions
@@ -242,8 +257,6 @@ impl Entity {
         }
     }
 }
-struct Opaque(Position);
-
 pub fn distance(first: (f32, f32), second: (f32, f32)) -> f32 {
     let (x1, y1) = first;
     let (x2, y2) = second;

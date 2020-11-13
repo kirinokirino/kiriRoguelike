@@ -30,16 +30,18 @@ use macroquad::{
 
 mod graphics;
 use graphics::layer::LAYER_DIMENSIONS;
+use graphics::tile::Position;
 use graphics::tile_atlas::TileAtlas;
 
 mod world;
-use world::{Generator, World};
+use world::{Generator, World, WorldPosition};
 
 mod entities;
-use entities::entities::Entities;
+use entities::entities::{Entities, Entity};
 
 mod camera;
 use camera::{mouse_position_relative_to, Camera};
+
 #[macroquad::main("kiriRoguelike")]
 async fn main() {
     // Load assets.
@@ -54,16 +56,24 @@ async fn main() {
 
     // Create the world!
     let mut world = World::default();
-    let mut generator = Generator::default();
+    let generator = Generator::new(2);
     let mut entities = Entities::default();
-    let mut score: i64 = 0;
+    let mut score: i64;
+
     // The infinite game loop.
     loop {
         // ===========Input===========
         // Get the mouse position inside the game world.
         let mouse_position = mouse_position_relative_to(&main_camera);
-        left_mouse_pressed = handle_mouse(left_mouse_pressed, mouse_position);
-
+        let (new_left_mouse, cursor) = handle_mouse(left_mouse_pressed, mouse_position);
+        left_mouse_pressed = new_left_mouse;
+        if let Some((world_pos, pos)) = cursor {
+            println!("Terrain: {:?}", world.get_tile(&world_pos, &pos).unwrap());
+            if let Some(entity) = entities.get_mut_entity_at_pos(&world_pos, &pos) {
+                println!("Entity: {:?}", entity);
+            }
+            //entities.add_entity(&world_pos, &pos);
+        }
         entities.input(handle_keyboard(&mut main_camera));
         let player_pos = entities.player.entity.world_pos.clone();
         // ===========Update===========
@@ -136,20 +146,43 @@ fn handle_keyboard(camera: &mut Camera) -> (i8, i8) {
 }
 
 /// Handle the mouse. Print the coordinates where the mouse was clicked.
-fn handle_mouse(left_mouse_pressed: bool, mouse_position: Vec2) -> bool {
+fn handle_mouse(
+    left_mouse_pressed: bool,
+    mouse_position: Vec2,
+) -> (bool, Option<(WorldPosition, Position)>) {
     if is_mouse_button_down(MouseButton::Left) {
-        if !left_mouse_pressed {
-            debug!(
-                "Mouse click x:{:.0}|{:.1} , y:{:.0}|{:.1}",
-                (mouse_position.x() / f32::from(LAYER_DIMENSIONS)).floor(),
-                mouse_position.x(),
-                (mouse_position.y() / f32::from(LAYER_DIMENSIONS)).floor(),
-                mouse_position.y(),
-            );
+        let (mut mouse_x, mut mouse_y) = (mouse_position.x(), mouse_position.y());
+        mouse_x = mouse_x.floor();
+        mouse_y = mouse_y.floor();
+        let layer = f32::from(LAYER_DIMENSIONS);
+        let (world_x, world_y) = ((mouse_x / layer).floor(), (mouse_y / layer).floor());
+
+        if mouse_x < 0.0 {
+            mouse_x = layer - (-mouse_x % layer);
+        }
+        if mouse_y < 0.0 {
+            mouse_y = layer - (-mouse_y % layer);
         }
 
-        true
-    } else {
-        false
+        if !left_mouse_pressed {
+            let (x, y) = (mouse_x.abs() % layer, mouse_y.abs() % layer);
+            debug!(
+                "Mouse click x:{:.0}|{:.1} , y:{:.0}|{:.1}",
+                world_x, x, world_y, y
+            );
+            let (world_pos, pos) = Entity::get_checked_position(
+                WorldPosition {
+                    x: world_x as i32,
+                    y: world_y as i32,
+                },
+                Position {
+                    x: (x + 1.) as i16,
+                    y: y as i16,
+                },
+            );
+            return (true, Some((world_pos, pos)));
+        }
+        return (true, None);
     }
+    (false, None)
 }

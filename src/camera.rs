@@ -16,7 +16,7 @@ impl Camera {
     }
 
     /// Get and handle the input related to the camera.
-    pub fn scroll(&mut self, scroll_speed: f32, zoom_speed: f32) {
+    pub fn scroll(&mut self, _scroll_speed: f32, zoom_speed: f32) {
         /*
         // Move the camera:
         // UP

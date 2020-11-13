@@ -39,6 +39,13 @@ impl Layer {
             positions,
         }
     }
+    pub fn get_tile(&self, pos: &Position) -> &TileType {
+        self.tile_types
+            .get(pos.y as usize)
+            .expect("Tried to get a tile outside the layer!")
+            .get(pos.x as usize)
+            .expect("Tried to get a tile outside the layer!")
+    }
 }
 
 impl<'a> IntoIterator for &'a Layer {
@@ -46,7 +53,6 @@ impl<'a> IntoIterator for &'a Layer {
     type IntoIter = LayerIterator<'a>;
     fn into_iter(self) -> Self::IntoIter {
         LayerIterator {
-            origin: self.origin,
             tile_types: &self.tile_types,
             positions: &self.positions,
             index: 0,
@@ -56,7 +62,6 @@ impl<'a> IntoIterator for &'a Layer {
 
 /// Iterator for the layer. Iterates on the corresponding `TileType`, `Position` and `Brightness`.
 pub struct LayerIterator<'a> {
-    origin: (i64, i64),
     tile_types: &'a Vec<Vec<TileType>>,
     positions: &'a Vec<Vec<Position>>,
     index: usize,
