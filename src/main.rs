@@ -68,9 +68,9 @@ async fn main() {
         let (new_left_mouse, cursor) = handle_mouse(left_mouse_pressed, mouse_position);
         left_mouse_pressed = new_left_mouse;
         if let Some((world_pos, pos)) = cursor {
-            println!("Terrain: {:?}", world.get_tile(&world_pos, &pos).unwrap());
+            println!("Terrain: {}", world.get_tile(&world_pos, &pos).unwrap());
             if let Some(entity) = entities.get_mut_entity_at_pos(&world_pos, &pos) {
-                println!("Entity: {:?}", entity);
+                println!("{}", entity);
             }
             //entities.add_entity(&world_pos, &pos);
         }

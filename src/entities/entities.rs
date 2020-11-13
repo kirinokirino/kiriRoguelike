@@ -40,6 +40,7 @@ impl Entities {
         for location in locations_to_unload.drain(..) {
             self.unload_entites_from_location(&location);
         }
+        self.clean_up();
         if !self.player.destination.is_zero() {
             let future_pos = self.player.calc_future_pos();
             let collider = self
@@ -65,8 +66,6 @@ impl Entities {
                     .add_to_local_position(self.player.destination.as_tuple().into());
             }
             self.player.destination.reset_destination();
-
-            self.clean_up();
         }
     }
 
@@ -257,6 +256,13 @@ impl Entity {
         }
     }
 }
+
+impl std::fmt::Display for Entity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Entity: {}", self.tile)
+    }
+}
+
 pub fn distance(first: (f32, f32), second: (f32, f32)) -> f32 {
     let (x1, y1) = first;
     let (x2, y2) = second;
