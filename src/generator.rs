@@ -1,4 +1,4 @@
-use crate::coords::{LocalPosition, CHUNK_SIZE};
+use crate::coords::{ChunkPosition, LocalPosition, CHUNK_SIZE};
 use crate::entities::entities::Entity;
 use crate::tile_types::TileType;
 
@@ -16,13 +16,12 @@ impl Generator {
 
     pub fn generate_chunk_terrain(
         &self,
-        x_offset: f32,
-        y_offset: f32,
+        chunk_pos: ChunkPosition,
     ) -> (Vec<Vec<LocalPosition>>, Vec<Vec<TileType>>) {
         let noise = NoiseBuilder::gradient_2d_offset(
-            x_offset,
+            (chunk_pos.x * i32::from(CHUNK_SIZE)) as f32,
             CHUNK_SIZE.into(),
-            y_offset,
+            (chunk_pos.y * i32::from(CHUNK_SIZE)) as f32,
             CHUNK_SIZE.into(),
         )
         .with_seed(self.seed)

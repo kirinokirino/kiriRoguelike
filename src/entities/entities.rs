@@ -70,9 +70,9 @@ impl Entities {
     }
 
     pub fn draw(&self, tile_atlas: &TileAtlas) {
-        let player_pos = self.player.entity.get_absolute_position();
+        let player_pos = self.player.entity.get_absolute_position_f32();
         for entity in self.entities.iter() {
-            let entity_pos = entity.get_absolute_position();
+            let entity_pos = entity.get_absolute_position_f32();
             let dist = distance(player_pos, entity_pos);
             if dist < self.player.vision_range.into() {
                 let brightness = self.player.calc_brightness(dist);
@@ -91,12 +91,6 @@ impl Entities {
             entity.set_chunk_position(location.clone());
             self.entities.push(entity);
         }
-    }
-
-    pub fn add_entity(&mut self, chunk_pos: &ChunkPosition, pos: &LocalPosition) {
-        let mut entity = Entity::default();
-        entity.set_position((*chunk_pos, *pos));
-        self.entities.push(entity);
     }
 
     fn load_entities_at_location(&mut self, location: &ChunkPosition, generator: &Generator) {
@@ -144,15 +138,6 @@ pub struct Entity {
 }
 
 impl Entity {
-    fn new(chunk_pos: ChunkPosition, pos: LocalPosition, tile: TileType) -> Self {
-        Self {
-            chunk_pos,
-            pos,
-            tile,
-            removed: false,
-        }
-    }
-
     pub fn new_local(pos: LocalPosition, tile: TileType) -> Self {
         Self {
             chunk_pos: ChunkPosition::default(),
@@ -211,7 +196,7 @@ impl Entity {
         self.set_local_position(pos.1);
     }
 
-    pub fn get_absolute_position(&self) -> (f32, f32) {
+    pub fn get_absolute_position_f32(&self) -> (f32, f32) {
         let LocalPosition { x, y } = self.pos;
         let ChunkPosition {
             x: world_x,

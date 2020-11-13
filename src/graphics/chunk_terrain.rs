@@ -1,10 +1,10 @@
-use crate::coords::{LocalPosition, CHUNK_SIZE};
+use crate::coords::{AbsolutePosition, ChunkPosition, LocalPosition, CHUNK_SIZE};
 use crate::tile_types::TileType;
 
 /// The background terrain for the chunk.
 #[derive(Debug)]
 pub struct ChunkTerrain {
-    pub origin: (i64, i64),
+    chunk: ChunkPosition,
 
     positions: Vec<Vec<LocalPosition>>,
     tile_types: Vec<Vec<TileType>>,
@@ -12,12 +12,12 @@ pub struct ChunkTerrain {
 
 impl ChunkTerrain {
     pub fn new(
-        origin: (i64, i64),
+        chunk: ChunkPosition,
         tile_types: Vec<Vec<TileType>>,
         positions: Vec<Vec<LocalPosition>>,
     ) -> Self {
         Self {
-            origin,
+            chunk,
             positions,
             tile_types,
         }
@@ -32,10 +32,11 @@ impl ChunkTerrain {
 }
 
 impl<'a> IntoIterator for &'a ChunkTerrain {
-    type Item = (TileType, LocalPosition);
+    type Item = (TileType, AbsolutePosition);
     type IntoIter = ChunkIterator<'a>;
     fn into_iter(self) -> Self::IntoIter {
         ChunkIterator {
+            chunk: self.chunk.clone(),
             tile_types: &self.tile_types,
             positions: &self.positions,
             index: 0,
@@ -45,13 +46,14 @@ impl<'a> IntoIterator for &'a ChunkTerrain {
 
 /// Iterator for the chunk. Iterates on the corresponding `TileType`, `Position` and `Brightness`.
 pub struct ChunkIterator<'a> {
+    chunk: ChunkPosition,
     tile_types: &'a Vec<Vec<TileType>>,
     positions: &'a Vec<Vec<LocalPosition>>,
     index: usize,
 }
 
 impl<'a> Iterator for ChunkIterator<'a> {
-    type Item = (TileType, LocalPosition);
+    type Item = (TileType, AbsolutePosition);
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= (CHUNK_SIZE * CHUNK_SIZE).into() {
             None
@@ -62,7 +64,10 @@ impl<'a> Iterator for ChunkIterator<'a> {
             );
 
             let tile_type = self.tile_types[x][y];
-            let position = self.positions[x][y];
+            let position = AbsolutePosition {
+                chunk: self.chunk,
+                local: self.positions[x][y],
+            };
 
             self.index += 1;
             Some((tile_type, position))

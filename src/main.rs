@@ -70,7 +70,7 @@ async fn main() {
     let mut left_mouse_pressed = false;
 
     // The position of the tile we clicked.
-    let mut cursor = None;
+    let mut cursor;
 
     // The infinite game loop.
     loop {
@@ -108,7 +108,7 @@ async fn main() {
         score = entities.player.score;
 
         // Point the camera to the new position of the player before the drawing stage.
-        main_camera.set_target(entities.player.entity.get_absolute_position().into());
+        main_camera.set_target(entities.player.entity.get_absolute_position_f32().into());
 
         // ===========Draw===========
         // Fill the canvas with the background color.

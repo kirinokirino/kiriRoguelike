@@ -48,3 +48,12 @@ pub struct AbsolutePosition {
     pub chunk: ChunkPosition,
     pub local: LocalPosition,
 }
+
+impl Into<(f32, f32)> for AbsolutePosition {
+    fn into(self) -> (f32, f32) {
+        (
+            (self.chunk.x * i32::from(CHUNK_SIZE) + i32::from(self.local.x)) as f32,
+            (self.chunk.y * i32::from(CHUNK_SIZE) + i32::from(self.local.y)) as f32,
+        )
+    }
+}

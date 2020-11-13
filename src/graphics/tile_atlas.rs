@@ -36,7 +36,7 @@ impl TileAtlas {
     /// Draws the provided `&Entity`.
     pub fn draw_entity(&self, entity: &Entity, brightness: Brightness) {
         let params = self.get_texture_params(entity.tile);
-        let (x, y) = entity.get_absolute_position();
+        let (x, y) = entity.get_absolute_position_f32();
         draw_texture_ex(
             self.texture,
             f32::from(x),
@@ -48,13 +48,10 @@ impl TileAtlas {
 
     /// Draws every tile from the provided `&ChunkTerrain`.
     pub fn draw_layer(&self, chunk: &ChunkTerrain, player: &Player) {
-        for (tile_type, local_pos) in chunk {
-            let (x, y) = (
-                (chunk.origin.0 + i64::from(local_pos.x)) as f32,
-                (chunk.origin.1 + i64::from(local_pos.y)) as f32,
-            );
+        for (tile_type, tile_pos) in chunk {
+            let (x, y) = tile_pos.into();
 
-            let dist = distance(player.entity.get_absolute_position(), (x, y));
+            let dist = distance(player.entity.get_absolute_position_f32(), (x, y));
             if dist < player.vision_range.into() {
                 let brightness = player.calc_brightness(dist);
                 let params = self.get_texture_params(tile_type);

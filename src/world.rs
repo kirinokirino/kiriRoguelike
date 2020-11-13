@@ -1,4 +1,4 @@
-use crate::coords::{AbsolutePosition, ChunkPosition, LocalPosition, CHUNK_SIZE};
+use crate::coords::{AbsolutePosition, ChunkPosition};
 use crate::entities::player::Player;
 use crate::generator::Generator;
 use crate::graphics::chunk_terrain::ChunkTerrain;
@@ -28,19 +28,16 @@ impl World {
     }
 
     /// Generates the chunk at `ChunkPosition` and adds it to the world.
-    fn gen_chunk(&mut self, pos: ChunkPosition, generator: &Generator) {
-        let x = pos.x * i32::from(CHUNK_SIZE);
-        let y = pos.y * i32::from(CHUNK_SIZE);
-        self.positions_of_chunks_in_view.push(pos);
-        let origin = (i64::from(x), i64::from(y));
+    fn gen_chunk(&mut self, chunk_pos: ChunkPosition, generator: &Generator) {
+        self.positions_of_chunks_in_view.push(chunk_pos);
         self.chunks
-            .insert(pos, Self::new_chunk_terrain(generator, origin));
+            .insert(chunk_pos, Self::new_chunk_terrain(generator, chunk_pos));
     }
 
     /// Utility function to create a new `ChunkTerrain`
-    fn new_chunk_terrain(gen: &Generator, origin: (i64, i64)) -> ChunkTerrain {
-        let (positions, tile_types) = gen.generate_chunk_terrain(origin.0 as f32, origin.1 as f32);
-        ChunkTerrain::new(origin, tile_types, positions)
+    fn new_chunk_terrain(gen: &Generator, chunk_pos: ChunkPosition) -> ChunkTerrain {
+        let (positions, tile_types) = gen.generate_chunk_terrain(chunk_pos);
+        ChunkTerrain::new(chunk_pos, tile_types, positions)
     }
 
     /// Returns all the `ChunkTerrain` structures that should be in view.
