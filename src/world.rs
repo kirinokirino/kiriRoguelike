@@ -53,7 +53,7 @@ impl World {
     }
 
     /// Get the option reference to the chunk at `ChunkPosition`.
-    fn get_chunk(&self, chunk_pos: &ChunkPosition) -> Option<&ChunkTerrain> {
+    pub fn get_chunk(&self, chunk_pos: &ChunkPosition) -> Option<&ChunkTerrain> {
         self.chunks.get(chunk_pos)
     }
 

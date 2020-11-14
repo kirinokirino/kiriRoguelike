@@ -1,6 +1,7 @@
 use crate::coords::{AbsolutePosition, ChunkPosition, LocalPosition, CHUNK_SIZE};
 use crate::entities::player::Player;
 use crate::generator::Generator;
+use crate::graphics::chunk_terrain::ChunkTerrain;
 use crate::graphics::tile_atlas::TileAtlas;
 use crate::tile_types::TileType;
 use crate::world::World;
@@ -26,7 +27,13 @@ impl Entities {
         let active_locations = &world.positions_of_chunks_in_view;
         for active_location in active_locations.iter() {
             if !self.loaded_locations.contains(active_location) {
-                self.load_entities_at_location(active_location, generator);
+                self.load_entities_at_location(
+                    active_location,
+                    world
+                        .get_chunk(active_location)
+                        .expect("This chunk should be available by now!"),
+                    generator,
+                );
             }
         }
 
@@ -82,10 +89,15 @@ impl Entities {
         tile_atlas.draw_entity(&self.player.entity, 255.into());
     }
 
-    fn populate_location(&mut self, location: ChunkPosition, generator: &Generator) {
+    fn populate_location(
+        &mut self,
+        location: ChunkPosition,
+        terrain: &ChunkTerrain,
+        generator: &Generator,
+    ) {
         let scaled_x = location.x * i32::from(CHUNK_SIZE);
         let scaled_y = location.y * i32::from(CHUNK_SIZE);
-        let entities = generator.generate_entities(scaled_x as f32, scaled_y as f32);
+        let entities = generator.generate_entities(scaled_x as f32, scaled_y as f32, terrain);
 
         for mut entity in entities {
             entity.set_chunk_position(location.clone());
@@ -93,11 +105,16 @@ impl Entities {
         }
     }
 
-    fn load_entities_at_location(&mut self, location: &ChunkPosition, generator: &Generator) {
+    fn load_entities_at_location(
+        &mut self,
+        location: &ChunkPosition,
+        chunk_terrain: &ChunkTerrain,
+        generator: &Generator,
+    ) {
         if let Some(entities) = self.entities_store.remove(location) {
             self.load_entities(entities);
         } else {
-            self.populate_location(*location, generator);
+            self.populate_location(*location, chunk_terrain, generator);
         }
         self.loaded_locations.push(*location);
     }
@@ -220,7 +237,7 @@ impl Entity {
     pub const fn is_blocking(entity: &Entity) -> Option<bool> {
         match entity.tile {
             TileType::Debug => Some(false),
-            TileType::Wall => Some(true),
+            TileType::WoodenWall => Some(true),
             TileType::GrassFloor => Some(false),
             TileType::Pengu => Some(true),
             TileType::Door => Some(true),
@@ -229,15 +246,19 @@ impl Entity {
             TileType::Cat => Some(true),
             TileType::StoneFloor => Some(false),
             TileType::Bush => Some(true),
-            TileType::Stones => Some(false),
+            TileType::GrassStones => Some(false),
             TileType::Pond => Some(true),
+            TileType::SandFloor => Some(false),
+            TileType::StoneWall => Some(true),
+            TileType::StoneEngraving => Some(true),
+            TileType::SandStones => Some(false),
         }
     }
 
     pub const fn is_pickup(entity: &Entity) -> Option<bool> {
         match entity.tile {
             TileType::Debug => Some(false),
-            TileType::Wall => Some(false),
+            TileType::WoodenWall => Some(false),
             TileType::GrassFloor => Some(false),
             TileType::Pengu => Some(false),
             TileType::Door => Some(false),
@@ -246,8 +267,12 @@ impl Entity {
             TileType::Cat => Some(false),
             TileType::StoneFloor => Some(false),
             TileType::Bush => Some(false),
-            TileType::Stones => Some(false),
+            TileType::GrassStones => Some(false),
             TileType::Pond => Some(false),
+            TileType::SandFloor => Some(false),
+            TileType::StoneWall => Some(false),
+            TileType::StoneEngraving => Some(false),
+            TileType::SandStones => Some(false),
         }
     }
 }

@@ -87,7 +87,7 @@ impl TileAtlas {
     const fn get_atlas_position(tile_type: TileType) -> (f32, f32) {
         match tile_type {
             TileType::Debug => (0., 0.),
-            TileType::Wall => (1., 0.),
+            TileType::WoodenWall => (1., 0.),
             TileType::GrassFloor => (2., 0.),
             TileType::Pengu => (3., 0.),
             TileType::Door => (0., 1.),
@@ -96,8 +96,12 @@ impl TileAtlas {
             TileType::Cat => (3., 1.),
             TileType::StoneFloor => (0., 2.),
             TileType::Bush => (1., 2.),
-            TileType::Stones => (2., 2.),
+            TileType::GrassStones => (2., 2.),
             TileType::Pond => (3., 2.),
+            TileType::SandFloor => (0., 3.),
+            TileType::StoneWall => (1., 3.),
+            TileType::StoneEngraving => (2., 3.),
+            TileType::SandStones => (3., 3.),
         }
     }
 }

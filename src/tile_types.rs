@@ -2,7 +2,7 @@
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum TileType {
     Debug,
-    Wall,
+    WoodenWall,
     GrassFloor,
     Pengu,
     Door,
@@ -11,8 +11,12 @@ pub enum TileType {
     Cat,
     StoneFloor,
     Bush,
-    Stones,
+    GrassStones,
     Pond,
+    SandFloor,
+    StoneWall,
+    StoneEngraving,
+    SandStones,
 }
 
 impl Default for TileType {

@@ -1,8 +1,9 @@
 use crate::coords::{ChunkPosition, LocalPosition, CHUNK_SIZE};
 use crate::entities::entities::Entity;
+use crate::graphics::chunk_terrain::ChunkTerrain;
 use crate::tile_types::TileType;
 
-use simdnoise::NoiseBuilder;
+use simdnoise::{GradientSettings, NoiseBuilder};
 
 #[derive(Default)]
 pub struct Generator {
@@ -37,8 +38,9 @@ impl Generator {
                 positions_row.push(LocalPosition::new(x as i16, y as i16));
                 let number = *noise.get((y * CHUNK_SIZE + x) as usize).unwrap() as u8;
                 let tile_type = match number {
-                    0..=209 => TileType::GrassFloor,
-                    210..=255 => TileType::StoneFloor,
+                    0..=19 => TileType::StoneFloor,
+                    20..=209 => TileType::GrassFloor,
+                    210..=255 => TileType::SandFloor,
                 };
                 tiles_row.push(tile_type);
             }
@@ -48,7 +50,12 @@ impl Generator {
         (positions, tile_types)
     }
 
-    pub fn generate_entities(&self, x_offset: f32, y_offset: f32) -> Vec<Entity> {
+    pub fn generate_entities(
+        &self,
+        x_offset: f32,
+        y_offset: f32,
+        chunk_terrain: &ChunkTerrain,
+    ) -> Vec<Entity> {
         let noise = NoiseBuilder::gradient_2d_offset(
             x_offset,
             CHUNK_SIZE.into(),
@@ -58,30 +65,53 @@ impl Generator {
         .with_seed(self.seed)
         .with_freq(0.4)
         .generate_scaled(0.0, 255.0);
-
         let mut entities = Vec::new();
+
         for y in 0..CHUNK_SIZE {
             for x in 0..CHUNK_SIZE {
-                let number = *noise.get((y * CHUNK_SIZE + x) as usize).unwrap() as u8;
+                let ground_tile = chunk_terrain.get_tile(&LocalPosition {
+                    x: x as i16,
+                    y: y as i16,
+                });
                 let pos = LocalPosition::new(x as i16, y as i16);
-                match number {
-                    220..=222 => {
-                        entities.push(Entity::new_local(pos, TileType::Pond));
-                    }
-                    223..=244 => {
-                        entities.push(Entity::new_local(pos, TileType::Stones));
-                    }
-                    245..=252 => {
-                        entities.push(Entity::new_local(pos, TileType::Bush));
-                    }
-                    253..=255 => {
-                        entities.push(Entity::new_local(pos, TileType::Coin));
-                    }
-                    _ => {}
+                let number = *noise.get((y * CHUNK_SIZE + x) as usize).unwrap() as u8;
+                let entity = match ground_tile {
+                    TileType::SandFloor => self.sand_entity(number, pos),
+                    TileType::GrassFloor => self.grass_entity(number, pos),
+                    TileType::StoneFloor => self.stone_entity(number, pos),
+                    _ => None,
+                };
+                if let Some(entity) = entity {
+                    entities.push(entity)
                 }
             }
         }
-
         entities
+    }
+
+    fn grass_entity(&self, number: u8, pos: LocalPosition) -> Option<Entity> {
+        match number {
+            238..=239 => Some(Entity::new_local(pos, TileType::Pond)),
+            239..=244 => Some(Entity::new_local(pos, TileType::GrassStones)),
+            245..=252 => Some(Entity::new_local(pos, TileType::Bush)),
+            253..=255 => Some(Entity::new_local(pos, TileType::Coin)),
+            _ => None,
+        }
+    }
+
+    fn sand_entity(&self, number: u8, pos: LocalPosition) -> Option<Entity> {
+        match number {
+            235..=252 => Some(Entity::new_local(pos, TileType::SandStones)),
+            253..=255 => Some(Entity::new_local(pos, TileType::Coin)),
+            _ => None,
+        }
+    }
+
+    fn stone_entity(&self, number: u8, pos: LocalPosition) -> Option<Entity> {
+        match number {
+            250..=252 => Some(Entity::new_local(pos, TileType::Pond)),
+            253..=255 => Some(Entity::new_local(pos, TileType::Coin)),
+            _ => None,
+        }
     }
 }
