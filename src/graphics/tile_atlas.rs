@@ -73,8 +73,8 @@ impl TileAtlas {
         let params = DrawTextureParams {
             dest_size: Some(Vec2::new(-1.0, 1.0)),
             source: Some(Rect {
-                x: (self.tile_width + 0.3) * atlas_x,
-                y: (self.tile_height + 0.3) * atlas_y,
+                x: (self.tile_width + 0.2) * atlas_x,
+                y: (self.tile_height + 0.2) * atlas_y,
                 w: self.tile_width - 1.0,
                 h: self.tile_height - 1.0,
             }),
@@ -87,6 +87,7 @@ impl TileAtlas {
     const fn get_atlas_position(tile_type: TileType) -> (f32, f32) {
         match tile_type {
             TileType::Debug => (0., 0.),
+            TileType::Placeholder => (0., 0.),
             TileType::WoodenWall => (1., 0.),
             TileType::GrassFloor => (2., 0.),
             TileType::Pengu => (3., 0.),
@@ -102,6 +103,12 @@ impl TileAtlas {
             TileType::StoneWall => (1., 3.),
             TileType::StoneEngraving => (2., 3.),
             TileType::SandStones => (3., 3.),
+            TileType::WhiteFlower => (0., 4.),
+            TileType::MushroomOrange => (1., 4.),
+            TileType::MushroomBrown => (2., 4.),
+            TileType::TreeStomp => (3., 4.),
+            TileType::VioletFlower => (0., 5.),
+            TileType::MushroomRed => (1., 5.),
         }
     }
 }

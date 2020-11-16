@@ -17,6 +17,13 @@ pub enum TileType {
     StoneWall,
     StoneEngraving,
     SandStones,
+    WhiteFlower,
+    MushroomOrange,
+    MushroomBrown,
+    TreeStomp,
+    VioletFlower,
+    MushroomRed,
+    Placeholder,
 }
 
 impl Default for TileType {

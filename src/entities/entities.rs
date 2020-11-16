@@ -100,8 +100,18 @@ impl Entities {
         let entities = generator.generate_entities(scaled_x as f32, scaled_y as f32, terrain);
 
         for mut entity in entities {
-            entity.set_chunk_position(location.clone());
-            self.entities.push(entity);
+            if entity.tile == TileType::Placeholder {
+                // The center of the hut is `entity.pos`
+                // We pass this center (and terrain?) to the hut generator and get a
+                // vec of entities back.
+                for mut hut_e in self.create_hut(entity.pos) {
+                    hut_e.set_chunk_position(location.clone());
+                    self.entities.push(hut_e);
+                }
+            } else {
+                entity.set_chunk_position(location.clone());
+                self.entities.push(entity);
+            }
         }
     }
 
@@ -139,10 +149,49 @@ impl Entities {
         self.entities.retain(|e| !e.removed);
     }
 
+    //fn clear_the_ground(&mut self, top_left: &AbsolutePosition, down_right: &AbsolutePosition) {}
+
     pub fn get_mut_entity_at_pos(&mut self, position: &AbsolutePosition) -> Option<&mut Entity> {
         self.entities
             .iter_mut()
             .find(|e| e.pos == position.local && e.chunk_pos == position.chunk)
+    }
+
+    pub fn create_hut(&mut self, top_left: LocalPosition) -> Vec<Entity> {
+        let size = 5;
+        let blueprint = [
+            2, 1, 1, 1, 2, 1, 0, 0, 0, 1, 1, 0, 3, 0, 1, 1, 0, 0, 0, 1, 2, 1, 0, 1, 2,
+        ];
+
+        let mut res: Vec<Entity> = Vec::with_capacity(19);
+        for height in (0..size) {
+            for width in (0..size) {
+                let mut base_entity = Entity::default();
+                let pos = LocalPosition::new(top_left.x + width, top_left.y + height);
+                match blueprint[height as usize * size as usize + width as usize] {
+                    0 => (),
+                    1 => {
+                        base_entity.set_tile(TileType::StoneWall);
+                        base_entity.set_local_position(pos);
+                        res.push(base_entity);
+                    }
+                    2 => {
+                        base_entity.set_tile(TileType::StoneEngraving);
+                        base_entity.set_local_position(pos);
+                        res.push(base_entity);
+                    }
+                    3 => {
+                        base_entity.set_tile(TileType::Chest);
+                        base_entity.set_local_position(pos);
+                        res.push(base_entity);
+                    }
+                    _ => {
+                        unreachable!();
+                    }
+                }
+            }
+        }
+        res
     }
 }
 
@@ -230,6 +279,8 @@ impl Entity {
             self.removed = true;
             if self.tile == TileType::Coin {
                 player.score += 1;
+            } else if self.tile == TileType::Chest {
+                player.score += 5;
             }
         }
     }
@@ -237,6 +288,7 @@ impl Entity {
     pub const fn is_blocking(entity: &Entity) -> Option<bool> {
         match entity.tile {
             TileType::Debug => Some(false),
+            TileType::Placeholder => Some(false),
             TileType::WoodenWall => Some(true),
             TileType::GrassFloor => Some(false),
             TileType::Pengu => Some(true),
@@ -252,27 +304,20 @@ impl Entity {
             TileType::StoneWall => Some(true),
             TileType::StoneEngraving => Some(true),
             TileType::SandStones => Some(false),
+            TileType::WhiteFlower => Some(false),
+            TileType::MushroomOrange => Some(false),
+            TileType::MushroomBrown => Some(false),
+            TileType::TreeStomp => Some(true),
+            TileType::VioletFlower => Some(false),
+            TileType::MushroomRed => Some(false),
         }
     }
 
     pub const fn is_pickup(entity: &Entity) -> Option<bool> {
         match entity.tile {
-            TileType::Debug => Some(false),
-            TileType::WoodenWall => Some(false),
-            TileType::GrassFloor => Some(false),
-            TileType::Pengu => Some(false),
-            TileType::Door => Some(false),
             TileType::Chest => Some(true),
             TileType::Coin => Some(true),
-            TileType::Cat => Some(false),
-            TileType::StoneFloor => Some(false),
-            TileType::Bush => Some(false),
-            TileType::GrassStones => Some(false),
-            TileType::Pond => Some(false),
-            TileType::SandFloor => Some(false),
-            TileType::StoneWall => Some(false),
-            TileType::StoneEngraving => Some(false),
-            TileType::SandStones => Some(false),
+            _ => Some(false),
         }
     }
 }
