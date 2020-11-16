@@ -56,7 +56,7 @@ async fn main() {
     // Create the world, place that holds terrain.
     let mut world = World::default();
     // Create and seed the generator.
-    let generator = Generator::new(2);
+    let generator = Generator::new(0);
     // Create the container for all of the entities.
     let mut entities = Entities::default();
     // Just a number to show the score.
@@ -89,6 +89,7 @@ async fn main() {
             println!("Terrain: {}", world.get_tile(&cursor).unwrap());
             if let Some(entity) = entities.get_mut_entity_at_pos(&cursor) {
                 println!("{}", entity);
+                entity.removed = true;
             }
         }
 
@@ -210,7 +211,10 @@ fn handle_mouse(
                 world_y = world_y,
                 y = y
             );
-            let (chunk_pos, local_pos) = Entity::get_checked_position(
+            let AbsolutePosition {
+                chunk: chunk_pos,
+                local: local_pos,
+            } = Entity::get_checked_position(
                 ChunkPosition {
                     x: world_x as i32,
                     y: world_y as i32,

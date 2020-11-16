@@ -1,3 +1,8 @@
+use std::ops::Add;
+//                                | What is
+//                          TODO: v         this?
+use crate::entities::entities::Entity;
+
 pub const CHUNK_SIZE: u16 = 32;
 
 /// Coordinates in the chunk.
@@ -43,10 +48,23 @@ impl ChunkPosition {
     }
 }
 
+#[derive(Debug, Clone)]
 /// Holds both `ChunkPosition` and `LocalPosition`.
 pub struct AbsolutePosition {
     pub chunk: ChunkPosition,
     pub local: LocalPosition,
+}
+
+impl AbsolutePosition {
+    pub fn add_to_local(&self, delta: (i16, i16)) -> Self {
+        Entity::get_checked_position(
+            self.chunk,
+            LocalPosition::new(self.local.x + delta.0, self.local.y + delta.1),
+        )
+    }
+    pub fn new_local(&self, local: LocalPosition) -> Self {
+        Entity::get_checked_position(self.chunk, local)
+    }
 }
 
 impl Into<(f32, f32)> for AbsolutePosition {

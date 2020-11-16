@@ -53,7 +53,7 @@ impl Entities {
             let collider = self
                 .entities
                 .iter_mut()
-                .find(|e| e.pos == future_pos.1 && e.chunk_pos == future_pos.0);
+                .find(|e| e.pos == future_pos.local && e.chunk_pos == future_pos.chunk);
 
             let allowed_to_move = match collider {
                 Some(collider) => {
@@ -104,11 +104,19 @@ impl Entities {
                 // The center of the hut is `entity.pos`
                 // We pass this center (and terrain?) to the hut generator and get a
                 // vec of entities back.
-                for mut hut_e in self.create_hut(entity.pos) {
-                    hut_e.set_chunk_position(location.clone());
+                for mut hut_e in self.create_hut(&AbsolutePosition {
+                    local: entity.pos,
+                    chunk: location,
+                }) {
                     self.entities.push(hut_e);
                 }
             } else {
+                if let Some(_) = self.get_entity_at_pos(&AbsolutePosition {
+                    local: entity.pos,
+                    chunk: location.clone(), 
+                }) {
+                    continue;
+                }
                 entity.set_chunk_position(location.clone());
                 self.entities.push(entity);
             }
@@ -149,7 +157,10 @@ impl Entities {
         self.entities.retain(|e| !e.removed);
     }
 
-    //fn clear_the_ground(&mut self, top_left: &AbsolutePosition, down_right: &AbsolutePosition) {}
+    pub fn delete_entity_at_location(&mut self, position: &AbsolutePosition) {
+        self.entities
+            .retain(|e| !(e.chunk_pos == position.chunk && e.pos == position.local));
+    }
 
     pub fn get_mut_entity_at_pos(&mut self, position: &AbsolutePosition) -> Option<&mut Entity> {
         self.entities
@@ -157,41 +168,62 @@ impl Entities {
             .find(|e| e.pos == position.local && e.chunk_pos == position.chunk)
     }
 
-    pub fn create_hut(&mut self, top_left: LocalPosition) -> Vec<Entity> {
+    pub fn get_entity_at_pos(&self, position: &AbsolutePosition) -> Option<& Entity> {
+        self.entities
+            .iter()
+            .find(|e| e.pos == position.local && e.chunk_pos == position.chunk)
+    }
+
+    pub fn create_hut(&mut self, buttom_left: &AbsolutePosition) -> Vec<Entity> {
         let size = 5;
+
+        #[rustfmt::skip]
         let blueprint = [
-            2, 1, 1, 1, 2, 1, 0, 0, 0, 1, 1, 0, 3, 0, 1, 1, 0, 0, 0, 1, 2, 1, 0, 1, 2,
+            1, 1, 1, 1, 1, 
+            1, 0, 3, 0, 1, 
+            1, 0, 0, 0, 1, 
+            1, 0, 0, 0, 1, 
+            1, 2, 0, 2, 1,
         ];
 
-        let mut res: Vec<Entity> = Vec::with_capacity(19);
+        let res: Vec<Entity> = Vec::with_capacity(blueprint.len());
         for height in (0..size) {
             for width in (0..size) {
+                let absolute_position = buttom_left.add_to_local((width, height));
+                
+                if let Some(entity) = self.get_mut_entity_at_pos(&absolute_position) {
+                    entity.removed = true;
+                }
+                //self.add_debug_entity(absolute_position.clone());
+
                 let mut base_entity = Entity::default();
-                let pos = LocalPosition::new(top_left.x + width, top_left.y + height);
+
                 match blueprint[height as usize * size as usize + width as usize] {
-                    0 => (),
+                    0 => {
+                        base_entity.set_tile(TileType::Debug);
+                        base_entity.removed = true;
+                    },
                     1 => {
                         base_entity.set_tile(TileType::StoneWall);
-                        base_entity.set_local_position(pos);
-                        res.push(base_entity);
                     }
                     2 => {
                         base_entity.set_tile(TileType::StoneEngraving);
-                        base_entity.set_local_position(pos);
-                        res.push(base_entity);
                     }
                     3 => {
                         base_entity.set_tile(TileType::Chest);
-                        base_entity.set_local_position(pos);
-                        res.push(base_entity);
                     }
                     _ => {
                         unreachable!();
                     }
                 }
+                base_entity.set_position(absolute_position);
+                self.entities.push(base_entity);
             }
         }
         res
+    }
+    pub fn add_debug_entity(&mut self, pos: AbsolutePosition) {
+        self.entities.push(Entity::new(pos, TileType::Debug));
     }
 }
 
@@ -213,6 +245,15 @@ impl Entity {
         }
     }
 
+    pub fn new(pos: AbsolutePosition, tile: TileType) -> Self {
+        Self {
+            chunk_pos: pos.chunk,
+            pos: pos.local,
+            tile,
+            removed: false,
+        }
+    }
+
     pub fn set_tile(&mut self, tile: TileType) {
         self.tile = tile;
     }
@@ -229,7 +270,7 @@ impl Entity {
     pub fn get_checked_position(
         chunk_pos: ChunkPosition,
         pos: LocalPosition,
-    ) -> (ChunkPosition, LocalPosition) {
+    ) -> AbsolutePosition {
         let dimensions = CHUNK_SIZE as i16;
         let LocalPosition { mut x, mut y } = pos;
         let ChunkPosition {
@@ -250,16 +291,19 @@ impl Entity {
             world_y -= 1;
             y += dimensions;
         }
-        (ChunkPosition::new(world_x, world_y), LocalPosition { x, y })
+        AbsolutePosition {
+            local: LocalPosition { x, y },
+            chunk: ChunkPosition::new(world_x, world_y),
+        }
     }
 
     pub fn set_chunk_position(&mut self, chunk_pos: ChunkPosition) {
         self.chunk_pos = chunk_pos;
     }
 
-    pub fn set_position(&mut self, pos: (ChunkPosition, LocalPosition)) {
-        self.set_chunk_position(pos.0);
-        self.set_local_position(pos.1);
+    pub fn set_position(&mut self, pos: AbsolutePosition) {
+        self.set_chunk_position(pos.chunk);
+        self.set_local_position(pos.local);
     }
 
     pub fn get_absolute_position_f32(&self) -> (f32, f32) {

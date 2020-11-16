@@ -38,9 +38,9 @@ impl Generator {
                 positions_row.push(LocalPosition::new(x as i16, y as i16));
                 let number = *noise.get((y * CHUNK_SIZE + x) as usize).unwrap() as u8;
                 let tile_type = match number {
-                    0..=19 => TileType::StoneFloor,
-                    20..=209 => TileType::GrassFloor,
-                    210..=255 => TileType::SandFloor,
+                    0..=29 => TileType::StoneFloor,
+                    30..=239 => TileType::GrassFloor,
+                    240..=255 => TileType::SandFloor,
                 };
                 tiles_row.push(tile_type);
             }
