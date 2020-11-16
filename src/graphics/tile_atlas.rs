@@ -1,6 +1,7 @@
 use macroquad::{draw_texture_ex, load_texture, Color, DrawTextureParams, Rect, Texture2D, Vec2};
 
-use crate::entities::entities::{distance, Entity};
+use crate::coords::distance;
+use crate::entities::entities::Entity;
 use crate::entities::player::Player;
 use crate::graphics::brightness::Brightness;
 use crate::graphics::chunk_terrain::ChunkTerrain;

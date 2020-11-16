@@ -21,7 +21,7 @@ impl World {
 
     /// Draws every chunk that is in view.
     pub fn draw(&self, tile_atlas: &TileAtlas, player: &Player) {
-        let chunks = self.get_visible_chunks(player);
+        let chunks = self.get_visible_chunks();
         for chunk in chunks {
             tile_atlas.draw_layer(chunk, player);
         }
@@ -41,7 +41,7 @@ impl World {
     }
 
     /// Returns all the `ChunkTerrain` structures that should be in view.
-    fn get_visible_chunks(&self, player: &Player) -> Vec<&ChunkTerrain> {
+    fn get_visible_chunks(&self) -> Vec<&ChunkTerrain> {
         self.positions_of_chunks_in_view
             .iter()
             .map(|p| {

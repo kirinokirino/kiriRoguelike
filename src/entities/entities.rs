@@ -1,4 +1,6 @@
-use crate::coords::{AbsolutePosition, ChunkPosition, LocalPosition, CHUNK_SIZE};
+use crate::coords::{
+    distance, get_checked_position, AbsolutePosition, ChunkPosition, LocalPosition, CHUNK_SIZE,
+};
 use crate::entities::player::Player;
 use crate::generator::Generator;
 use crate::graphics::chunk_terrain::ChunkTerrain;
@@ -100,24 +102,28 @@ impl Entities {
         let entities = generator.generate_entities(scaled_x as f32, scaled_y as f32, terrain);
 
         for mut entity in entities {
+            let entity_pos = AbsolutePosition {
+                local: entity.pos,
+                chunk: location.clone(),
+            };
             if entity.tile == TileType::Placeholder {
-                // The center of the hut is `entity.pos`
-                // We pass this center (and terrain?) to the hut generator and get a
-                // vec of entities back.
-                for mut hut_e in self.create_hut(&AbsolutePosition {
-                    local: entity.pos,
-                    chunk: location,
-                }) {
-                    self.entities.push(hut_e);
+                if self
+                    .distance_to_closest(&entity_pos, TileType::Chest)
+                    .unwrap_or(25.)
+                    > 6.
+                {
+                    for hut_e in self.create_hut(&AbsolutePosition {
+                        local: entity.pos,
+                        chunk: location,
+                    }) {
+                        self.entities.push(hut_e);
+                    }
                 }
             } else {
-                if let Some(_) = self.get_entity_at_pos(&AbsolutePosition {
-                    local: entity.pos,
-                    chunk: location.clone(), 
-                }) {
+                if let Some(_) = self.get_entity_at_pos(&entity_pos) {
                     continue;
                 }
-                entity.set_chunk_position(location.clone());
+                entity.set_chunk_position(entity_pos.chunk);
                 self.entities.push(entity);
             }
         }
@@ -162,13 +168,39 @@ impl Entities {
             .retain(|e| !(e.chunk_pos == position.chunk && e.pos == position.local));
     }
 
+    pub fn distance_to_closest(
+        &self,
+        position: &AbsolutePosition,
+        entity_type: TileType,
+    ) -> Option<f32> {
+        let mut res = f32::INFINITY;
+        for entity in self.entities.iter().filter(|e| e.tile == entity_type) {
+            let entity_pos = AbsolutePosition {
+                local: entity.pos,
+                chunk: entity.chunk_pos,
+            };
+            let distance = distance(
+                position.get_absolute_position_f32(),
+                entity_pos.get_absolute_position_f32(),
+            );
+            if distance < res {
+                res = distance;
+            }
+        }
+        if res.is_infinite() {
+            None
+        } else {
+            Some(res)
+        }
+    }
+
     pub fn get_mut_entity_at_pos(&mut self, position: &AbsolutePosition) -> Option<&mut Entity> {
         self.entities
             .iter_mut()
             .find(|e| e.pos == position.local && e.chunk_pos == position.chunk)
     }
 
-    pub fn get_entity_at_pos(&self, position: &AbsolutePosition) -> Option<& Entity> {
+    pub fn get_entity_at_pos(&self, position: &AbsolutePosition) -> Option<&Entity> {
         self.entities
             .iter()
             .find(|e| e.pos == position.local && e.chunk_pos == position.chunk)
@@ -177,20 +209,15 @@ impl Entities {
     pub fn create_hut(&mut self, buttom_left: &AbsolutePosition) -> Vec<Entity> {
         let size = 5;
 
-        #[rustfmt::skip]
         let blueprint = [
-            1, 1, 1, 1, 1, 
-            1, 0, 3, 0, 1, 
-            1, 0, 0, 0, 1, 
-            1, 0, 0, 0, 1, 
-            1, 2, 0, 2, 1,
+            1, 1, 1, 1, 1, 1, 0, 3, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 2, 0, 2, 1,
         ];
 
         let res: Vec<Entity> = Vec::with_capacity(blueprint.len());
-        for height in (0..size) {
-            for width in (0..size) {
+        for height in 0..size {
+            for width in 0..size {
                 let absolute_position = buttom_left.add_to_local((width, height));
-                
+
                 if let Some(entity) = self.get_mut_entity_at_pos(&absolute_position) {
                     entity.removed = true;
                 }
@@ -202,7 +229,7 @@ impl Entities {
                     0 => {
                         base_entity.set_tile(TileType::Debug);
                         base_entity.removed = true;
-                    },
+                    }
                     1 => {
                         base_entity.set_tile(TileType::StoneWall);
                     }
@@ -264,37 +291,7 @@ impl Entity {
 
     pub fn add_to_local_position(&mut self, to_add: (i16, i16)) {
         self.pos.add_tuple(to_add);
-        self.set_position(Self::get_checked_position(self.chunk_pos, self.pos));
-    }
-
-    pub fn get_checked_position(
-        chunk_pos: ChunkPosition,
-        pos: LocalPosition,
-    ) -> AbsolutePosition {
-        let dimensions = CHUNK_SIZE as i16;
-        let LocalPosition { mut x, mut y } = pos;
-        let ChunkPosition {
-            x: mut world_x,
-            y: mut world_y,
-        } = chunk_pos;
-        if x >= dimensions {
-            world_x += 1;
-            x -= dimensions
-        } else if x < 0 {
-            world_x -= 1;
-            x += dimensions;
-        }
-        if y >= dimensions {
-            world_y += 1;
-            y -= dimensions;
-        } else if y < 0 {
-            world_y -= 1;
-            y += dimensions;
-        }
-        AbsolutePosition {
-            local: LocalPosition { x, y },
-            chunk: ChunkPosition::new(world_x, world_y),
-        }
+        self.set_position(get_checked_position(self.chunk_pos, self.pos));
     }
 
     pub fn set_chunk_position(&mut self, chunk_pos: ChunkPosition) {
@@ -304,6 +301,24 @@ impl Entity {
     pub fn set_position(&mut self, pos: AbsolutePosition) {
         self.set_chunk_position(pos.chunk);
         self.set_local_position(pos.local);
+    }
+
+    pub fn collide(&mut self, player: &mut Player) {
+        if Entity::is_pickup(self).unwrap() {
+            self.removed = true;
+            if self.tile == TileType::Coin {
+                player.score += 1;
+            } else if self.tile == TileType::Chest {
+                player.score += 5;
+            }
+        }
+    }
+
+    pub fn get_absolute_position(&self) -> AbsolutePosition {
+        AbsolutePosition {
+            local: self.pos,
+            chunk: self.chunk_pos,
+        }
     }
 
     pub fn get_absolute_position_f32(&self) -> (f32, f32) {
@@ -316,17 +331,6 @@ impl Entity {
             ((world_x * i32::from(CHUNK_SIZE)) + i32::from(x)) as f32,
             ((world_y * i32::from(CHUNK_SIZE)) + i32::from(y)) as f32,
         )
-    }
-
-    pub fn collide(&mut self, player: &mut Player) {
-        if Entity::is_pickup(self).unwrap() {
-            self.removed = true;
-            if self.tile == TileType::Coin {
-                player.score += 1;
-            } else if self.tile == TileType::Chest {
-                player.score += 5;
-            }
-        }
     }
 
     pub const fn is_blocking(entity: &Entity) -> Option<bool> {
@@ -370,12 +374,4 @@ impl std::fmt::Display for Entity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Entity: {}", self.tile)
     }
-}
-
-pub fn distance(first: (f32, f32), second: (f32, f32)) -> f32 {
-    let (x1, y1) = first;
-    let (x2, y2) = second;
-    let distance_x = (x1 - x2).abs();
-    let distance_y = (y1 - y2).abs();
-    distance_x.hypot(distance_y).abs()
 }

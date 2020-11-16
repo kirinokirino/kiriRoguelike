@@ -1,4 +1,4 @@
-use crate::coords::{AbsolutePosition, ChunkPosition, LocalPosition};
+use crate::coords::{get_checked_position, AbsolutePosition, LocalPosition};
 use crate::entities::entities::Entity;
 use crate::graphics::brightness::Brightness;
 use crate::tile_types::TileType;
@@ -23,7 +23,7 @@ impl Player {
     pub fn calc_future_pos(&self) -> AbsolutePosition {
         let LocalPosition { x, y } = self.entity.pos;
         let (dest_x, dest_y) = self.destination.as_tuple();
-        Entity::get_checked_position(
+        get_checked_position(
             self.entity.chunk_pos,
             LocalPosition {
                 x: x + dest_x,

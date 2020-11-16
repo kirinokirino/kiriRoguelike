@@ -3,7 +3,7 @@ use crate::entities::entities::Entity;
 use crate::graphics::chunk_terrain::ChunkTerrain;
 use crate::tile_types::TileType;
 
-use simdnoise::{GradientSettings, NoiseBuilder};
+use simdnoise::NoiseBuilder;
 
 #[derive(Default)]
 pub struct Generator {
@@ -91,14 +91,14 @@ impl Generator {
 
     fn grass_entity(&self, number: u8, pos: LocalPosition) -> Option<Entity> {
         match number {
+            219..=220 => Some(Entity::new_local(pos, TileType::TreeStomp)),
             221..=225 => Some(Entity::new_local(pos, TileType::MushroomBrown)),
-            225..=228 => Some(Entity::new_local(pos, TileType::MushroomOrange)),
-            228..=230 => Some(Entity::new_local(pos, TileType::MushroomRed)),
-            230..=234 => Some(Entity::new_local(pos, TileType::VioletFlower)),
-            234..=239 => Some(Entity::new_local(pos, TileType::WhiteFlower)),
-            239..=239 => Some(Entity::new_local(pos, TileType::Pond)),
-            239..=241 => Some(Entity::new_local(pos, TileType::TreeStomp)),
-            241..=244 => Some(Entity::new_local(pos, TileType::GrassStones)),
+            226..=228 => Some(Entity::new_local(pos, TileType::MushroomOrange)),
+            229..=230 => Some(Entity::new_local(pos, TileType::MushroomRed)),
+            231..=234 => Some(Entity::new_local(pos, TileType::VioletFlower)),
+            235..=239 => Some(Entity::new_local(pos, TileType::WhiteFlower)),
+            240..=241 => Some(Entity::new_local(pos, TileType::Pond)),
+            242..=244 => Some(Entity::new_local(pos, TileType::GrassStones)),
             245..=252 => Some(Entity::new_local(pos, TileType::Bush)),
             253..=255 => Some(Entity::new_local(pos, TileType::Coin)),
             _ => None,
@@ -116,7 +116,7 @@ impl Generator {
     fn stone_entity(&self, number: u8, pos: LocalPosition) -> Option<Entity> {
         match number {
             245..=250 => Some(Entity::new_local(pos, TileType::Placeholder)),
-            250..=252 => Some(Entity::new_local(pos, TileType::Pond)),
+            251..=252 => Some(Entity::new_local(pos, TileType::Pond)),
             253..=255 => Some(Entity::new_local(pos, TileType::Coin)),
             _ => None,
         }

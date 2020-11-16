@@ -34,7 +34,7 @@ use graphics::tile_atlas::TileAtlas;
 mod tile_types;
 
 mod coords;
-use coords::{AbsolutePosition, ChunkPosition, LocalPosition, CHUNK_SIZE};
+use coords::{get_checked_position, AbsolutePosition, ChunkPosition, LocalPosition, CHUNK_SIZE};
 
 mod world;
 use world::World;
@@ -43,7 +43,7 @@ mod generator;
 use generator::Generator;
 
 mod entities;
-use entities::entities::{Entities, Entity};
+use entities::entities::Entities;
 
 mod camera;
 use camera::{mouse_position_relative_to, Camera};
@@ -214,7 +214,7 @@ fn handle_mouse(
             let AbsolutePosition {
                 chunk: chunk_pos,
                 local: local_pos,
-            } = Entity::get_checked_position(
+            } = get_checked_position(
                 ChunkPosition {
                     x: world_x as i32,
                     y: world_y as i32,
