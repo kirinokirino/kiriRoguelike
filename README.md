@@ -4,3 +4,5 @@ Making a roguelike by loosely following the "Roguelike Tutorial - In Rust". Usin
 
 Please leave this link or say something like "Tiles from lisadiKaprio" somewhere if you use the Tiles.png from assets.
 https://lisadikaprio.itch.io/
+
+![Screenshot](/kiriroguelike.png)
