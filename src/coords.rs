@@ -1,7 +1,7 @@
 pub const CHUNK_SIZE: u16 = 32;
 
 /// Coordinates in the chunk.
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Default)]
 pub struct LocalPosition {
     pub x: i16,
     pub y: i16,
@@ -15,12 +15,6 @@ impl LocalPosition {
     pub fn add_tuple(&mut self, to_add: (i16, i16)) {
         self.x += to_add.0;
         self.y += to_add.1;
-    }
-}
-
-impl Default for LocalPosition {
-    fn default() -> Self {
-        Self { x: 0, y: 0 }
     }
 }
 
@@ -73,11 +67,11 @@ impl AbsolutePosition {
     }
 }
 
-impl Into<(f32, f32)> for AbsolutePosition {
-    fn into(self) -> (f32, f32) {
+impl From<AbsolutePosition> for (f32, f32) {
+    fn from(val: AbsolutePosition) -> Self {
         (
-            (self.chunk.x * i32::from(CHUNK_SIZE) + i32::from(self.local.x)) as f32,
-            (self.chunk.y * i32::from(CHUNK_SIZE) + i32::from(self.local.y)) as f32,
+            (val.chunk.x * i32::from(CHUNK_SIZE) + i32::from(val.local.x)) as f32,
+            (val.chunk.y * i32::from(CHUNK_SIZE) + i32::from(val.local.y)) as f32,
         )
     }
 }

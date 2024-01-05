@@ -72,7 +72,7 @@ async fn main() {
 
         // We need to know the player's chunk to see what chunks need to be
         // loaded or unloaded.
-        let player_pos = entities.player.entity.chunk_pos.clone();
+        let player_pos = entities.player.entity.chunk_pos;
         // Load or generate the chunks near the player.
         world.update(&player_pos, &generator);
 
@@ -90,7 +90,7 @@ async fn main() {
             r: 40.0 / 255.0,
             g: 40.0 / 255.0,
             b: 40.0 / 255.0,
-            a: 255.0 / 255.0,
+            a: 1.0,
         });
 
         // --- Camera space, render game objects.
@@ -106,7 +106,7 @@ async fn main() {
         // World needs to know the players location to know what terrain is visible
         // and how far it is to make it less visible.
         let player = &entities.player;
-        world.draw(&tile_atlas, &player);
+        world.draw(&tile_atlas, player);
         // Entities container already knows about the player.
         entities.draw(&tile_atlas);
 

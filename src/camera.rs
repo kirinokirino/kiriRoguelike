@@ -44,13 +44,13 @@ impl Camera {
         // Change the camera zoom:
         // Further
         if is_key_down(KeyCode::Apostrophe) {
-            self.zoom.x = self.zoom.x * zoom_speed;
-            self.zoom.y = self.zoom.y * zoom_speed;
+            self.zoom.x *= zoom_speed;
+            self.zoom.y *= zoom_speed;
         }
         // Closer
         if is_key_down(KeyCode::Period) {
-            self.zoom.x = self.zoom.x / zoom_speed;
-            self.zoom.y = self.zoom.y / zoom_speed;
+            self.zoom.x /= zoom_speed;
+            self.zoom.y /= zoom_speed;
         }
     }
 }

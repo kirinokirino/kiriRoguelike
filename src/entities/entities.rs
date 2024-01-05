@@ -42,7 +42,7 @@ impl Entities {
         let mut locations_to_unload: Vec<ChunkPosition> = Vec::new();
         for location in &self.loaded_locations {
             if !active_locations.contains(location) {
-                locations_to_unload.push(location.clone());
+                locations_to_unload.push(*location);
             }
         }
 
@@ -59,7 +59,7 @@ impl Entities {
 
             let allowed_to_move = match collider {
                 Some(collider) => {
-                    if Entity::is_blocking(&collider).unwrap() {
+                    if Entity::is_blocking(collider).unwrap() {
                         false
                     } else {
                         collider.collide(&mut self.player);
@@ -72,7 +72,7 @@ impl Entities {
             if allowed_to_move {
                 self.player
                     .entity
-                    .add_to_local_position(self.player.destination.as_tuple().into());
+                    .add_to_local_position(self.player.destination.as_tuple());
             }
             self.player.destination.reset_destination();
         }
@@ -104,7 +104,7 @@ impl Entities {
         for mut entity in entities {
             let entity_pos = AbsolutePosition {
                 local: entity.pos,
-                chunk: location.clone(),
+                chunk: location,
             };
             if entity.tile == TileType::Placeholder {
                 if self
@@ -120,7 +120,7 @@ impl Entities {
                     }
                 }
             } else {
-                if let Some(_) = self.get_entity_at_pos(&entity_pos) {
+                if self.get_entity_at_pos(&entity_pos).is_some() {
                     continue;
                 }
                 entity.set_chunk_position(entity_pos.chunk);
@@ -156,7 +156,7 @@ impl Entities {
     }
 
     fn load_entities(&mut self, mut entities: Vec<Entity>) {
-        self.entities.extend(entities.drain(..));
+        self.entities.append(&mut entities);
     }
 
     fn clean_up(&mut self) {

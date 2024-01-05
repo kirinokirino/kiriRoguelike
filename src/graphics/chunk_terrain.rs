@@ -36,7 +36,7 @@ impl<'a> IntoIterator for &'a ChunkTerrain {
     type IntoIter = ChunkIterator<'a>;
     fn into_iter(self) -> Self::IntoIter {
         ChunkIterator {
-            chunk: self.chunk.clone(),
+            chunk: self.chunk,
             tile_types: &self.tile_types,
             positions: &self.positions,
             index: 0,

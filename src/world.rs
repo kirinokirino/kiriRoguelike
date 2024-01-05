@@ -60,7 +60,7 @@ impl World {
     /// Get the option reference to the tile at `AbsolutePosition`
     pub fn get_tile(&self, position: &AbsolutePosition) -> Option<&TileType> {
         self.get_chunk(&position.chunk)
-            .and_then(|chunk| Some(chunk.get_tile(&position.local)))
+            .map(|chunk| chunk.get_tile(&position.local))
     }
 
     /// Updates chunks in view to be in the square formation around the
@@ -85,7 +85,7 @@ impl World {
         }
 
         for chunk in to_generate {
-            self.gen_chunk(chunk.clone(), generator);
+            self.gen_chunk(*chunk, generator);
         }
 
         self.positions_of_chunks_in_view = needed_chunks;
