@@ -1,7 +1,5 @@
-use macroquad::{
-    clear_background, debug, draw_circle, draw_text, is_key_pressed, is_mouse_button_down,
-    next_frame, set_camera, set_default_camera, warn, Camera2D, Color, KeyCode, MouseButton, Vec2,
-};
+use macroquad::camera::Camera2D;
+use macroquad::prelude::*;
 
 mod graphics;
 use graphics::tile_atlas::TileAtlas;
@@ -89,15 +87,18 @@ async fn main() {
         // ===========Draw===========
         // Fill the canvas with the background color.
         clear_background(Color {
-            0: [40, 40, 40, 255],
+            r: 40.0 / 255.0,
+            g: 40.0 / 255.0,
+            b: 40.0 / 255.0,
+            a: 255.0 / 255.0,
         });
 
         // --- Camera space, render game objects.
         let (target, zoom) = main_camera.get();
-        set_camera(Camera2D {
+        set_camera(&Camera2D {
             target,
             zoom,
-            ..macroquad::Camera2D::default()
+            ..Camera2D::default()
         });
 
         // We draw everything besides the ui in camera space.
@@ -110,10 +111,10 @@ async fn main() {
 
         // Draw the mouse cursor. As a small circle.
         draw_circle(
-            mouse_position.x(),
-            mouse_position.y(),
+            mouse_position.x,
+            mouse_position.y,
             0.1,
-            Color([100, 75, 120, 255]),
+            Color::from_rgba(100, 75, 120, 255),
         );
 
         // --- Fixed screen space, render ui.
@@ -158,7 +159,7 @@ fn handle_mouse(
     mouse_position: Vec2,
 ) -> (bool, Option<AbsolutePosition>) {
     if is_mouse_button_down(MouseButton::Left) {
-        let (mut mouse_x, mut mouse_y) = (mouse_position.x(), mouse_position.y());
+        let (mut mouse_x, mut mouse_y) = (mouse_position.x, mouse_position.y);
         mouse_x = mouse_x.floor();
         mouse_y = mouse_y.floor();
         let chunk_dimensions = f32::from(CHUNK_SIZE);

@@ -1,4 +1,4 @@
-use macroquad::Color;
+use macroquad::color::Color;
 
 /// A newtype for the brightness level, max is 255.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -24,6 +24,6 @@ impl From<Brightness> for u8 {
 
 impl From<Brightness> for Color {
     fn from(val: Brightness) -> Self {
-        Self([255, 255, 255, val.into()])
+        Self::from_rgba(255, 255, 255, val.into())
     }
 }

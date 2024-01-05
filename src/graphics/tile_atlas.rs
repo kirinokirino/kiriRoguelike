@@ -1,4 +1,4 @@
-use macroquad::{draw_texture_ex, load_texture, Color, DrawTextureParams, Rect, Texture2D, Vec2};
+use macroquad::prelude::*;
 
 use crate::coords::distance;
 use crate::entities::entities::Entity;
@@ -28,7 +28,7 @@ impl TileAtlas {
     /// Initialize the atlas from the texture with 32 pixels tile size.
     pub async fn default() -> Self {
         Self {
-            texture: load_texture("assets/Tiles.png").await,
+            texture: load_texture("assets/Tiles.png").await.unwrap(),
             tile_width: 32.,
             tile_height: 32.,
         }
@@ -80,6 +80,9 @@ impl TileAtlas {
                 h: self.tile_height - 1.0,
             }),
             rotation: std::f32::consts::PI,
+            flip_x: false,
+            flip_y: false,
+            pivot: None,
         };
         params
     }
