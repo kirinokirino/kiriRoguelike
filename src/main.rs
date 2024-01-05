@@ -95,6 +95,7 @@ async fn main() {
 
         // --- Camera space, render game objects.
         let (target, zoom) = main_camera.get();
+        let zoom = Vec2::new(zoom.x, -zoom.y);
         set_camera(&Camera2D {
             target,
             zoom,

@@ -39,7 +39,7 @@ impl TileAtlas {
         let params = self.get_texture_params(entity.tile);
         let (x, y) = entity.get_absolute_position_f32();
         draw_texture_ex(
-            self.texture,
+            &self.texture,
             f32::from(x),
             f32::from(y),
             Color::from(brightness),
@@ -58,7 +58,7 @@ impl TileAtlas {
                 let params = self.get_texture_params(tile_type);
                 #[allow(clippy::cast_precision_loss)]
                 draw_texture_ex(
-                    self.texture,
+                    &self.texture,
                     x as f32,
                     y as f32,
                     Color::from(brightness),

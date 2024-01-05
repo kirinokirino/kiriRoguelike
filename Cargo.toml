@@ -13,7 +13,7 @@ keywords = ["game"]
 categories = ["games"]
 
 [dependencies]
-macroquad = { version = "0.3", default-features = false }
+macroquad = { version = "0.4", default-features = false }
 #symmetric-shadowcasting = "0.2.0"
 simdnoise = "3.1.6"
 
